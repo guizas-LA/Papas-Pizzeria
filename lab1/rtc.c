@@ -12,48 +12,6 @@
 #define RTC_UIP_MSK (1 << 7)
 #define RTC_DM_MSK (1 << 2)
 
-static int bcd_to_bin(uint8_t bcd) {
-    return ((bcd >> 4) * 10) + (bcd & 0x0F);
-}
+static int bdc_to_bin(uint8_t bcd) { TODO; }
 
-int rtc_read_date(rtc_date *date) {
-
-    uint32_t regA;
-    uint32_t regB;
-    uint32_t day, month, year;
-
-    // esperar até UIP = 0
-    do {
-        sys_outb(RTC_ADDR_REG, RTC_REG_A);
-        sys_inb(RTC_DATA_REG, &regA);
-    } while (regA & RTC_UIP_MSK);
-
-    // ler registo B
-    sys_outb(RTC_ADDR_REG, RTC_REG_B);
-    sys_inb(RTC_DATA_REG, &regB);
-
-    // ler dia
-    sys_outb(RTC_ADDR_REG, RTC_REG_DAY);
-    sys_inb(RTC_DATA_REG, &day);
-
-    // ler mês
-    sys_outb(RTC_ADDR_REG, RTC_REG_MONTH);
-    sys_inb(RTC_DATA_REG, &month);
-
-    // ler ano
-    sys_outb(RTC_ADDR_REG, RTC_REG_YEAR);
-    sys_inb(RTC_DATA_REG, &year);
-
-    // converter se estiver em BCD
-    if (!(regB & RTC_DM_MSK)) {
-        day = bcd_to_bin(day);
-        month = bcd_to_bin(month);
-        year = bcd_to_bin(year);
-    }
-
-    date->day = (uint8_t) day;
-    date->month = (uint8_t) month;
-    date->year = (uint8_t) year;
-
-    return 0;
-}
+int rtc_read_date(rtc_date *date) { TODO; }

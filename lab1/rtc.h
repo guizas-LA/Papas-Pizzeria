@@ -1,8 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <minix/syslib.h>
-#include <minix/sysutil.h>
 
 typedef struct {
   uint8_t day;
