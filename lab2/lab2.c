@@ -48,7 +48,7 @@ int(timer_test_int)(uint8_t time) {
 
   while (timer_counter < time * 60) {
     if (driver_receive(ANY, &msg, &ipc_status) != 0) continue;
-
+    
     if (is_ipc_notify(ipc_status)) {
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:
@@ -67,6 +67,6 @@ int(timer_test_int)(uint8_t time) {
   }
 
   if (timer_unsubscribe_int() != 0) return 1;
-
+  
   return 0;
 }
