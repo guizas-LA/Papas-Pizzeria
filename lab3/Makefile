@@ -1,9 +1,12 @@
-PROG=lab3
+PROG= lab3
+
 SRCS= lab3.c kbc.c utils.c
 
-CFLAGS += -pedantic -D__LCOM_OPTIMIZED_ -O2 -Wall -Wextra -Werror -Wno-unused-parameter -DLAB3
+CFLAGS += -DLAB3
+CFLAGS += -I../lab2
 
 DPADD += ${LIBLCF}
-LDADD += -llcf
+LDADD += -llcf 
+LDADD += -L../lab2 -ltimer
 
 .include <minix.lcom.mk>

@@ -6,30 +6,17 @@
 #include "i8042.h"
 #include "kbc.h"
 
-/* TIMER */
-#define TIMER0_IRQ 0
-#define TIMER_FREQ 60
+extern uint8_t scancode;
+extern bool error_found;
+extern uint32_t sys_inb_counter;
 
-static int timer_hook_id = 0;
-static uint32_t timer_counter = 0;
-
-int (timer_subscribe_local_int)(uint8_t *bit_no) {
-  if (bit_no == NULL) return 1;
-  *bit_no = timer_hook_id;
-  return sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &timer_hook_id);
-}
-
-int (timer_unsubscribe_local_int)(void) {
-  return sys_irqrmpolicy(&timer_hook_id);
-}
-
-void (timer_int_handler_local)(void) {
-  timer_counter++;
-}
+extern int (timer_subscribe_int)(uint8_t *bit_no);
+extern int (timer_unsubscribe_int)();
+extern void (timer_int_handler)();
+extern int timer_counter;
 
 int main(int argc, char *argv[]) {
   lcf_set_language("EN-US");
-
   lcf_trace_calls("/home/lcom/labs/lab3/trace.txt");
   lcf_log_output("/home/lcom/labs/lab3/output.txt");
 
@@ -37,13 +24,7 @@ int main(int argc, char *argv[]) {
     return 1;
 
   lcf_cleanup();
-
   return 0;
-}
-
-static int print_scancode_from_bytes(uint8_t bytes[], uint8_t size) {
-  bool make = ((bytes[size - 1] & BIT(7)) == 0);
-  return kbd_print_scancode(make, size, bytes);
 }
 
 int(kbd_test_scan)() {
@@ -51,101 +32,80 @@ int(kbd_test_scan)() {
   int ipc_status, r;
   message msg;
 
-  uint8_t bytes[2];
-  uint8_t size = 0;
-  bool done = false;
+  if (kbd_subscribe_int(&bit_no) != 0) return 1;
 
-  if (kbc_subscribe_int(&bit_no) != 0) return 1;
   uint32_t irq_set = BIT(bit_no);
+  bool is_two_bytes = false;
+  uint8_t bytes;
+  uint8_t size = 0;
 
-  while (!done) {
-    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
-      printf("driver_receive failed with: %d\n", r);
-      continue;
-    }
+  while (scancode != ESC_BREAKCODE) {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) continue;
 
     if (is_ipc_notify(ipc_status)) {
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:
           if (msg.m_notify.interrupts & irq_set) {
-            kbc_ih();
+            kbc_ih(); 
 
-            if (kbc_get_valid()) {
-              uint8_t byte = kbc_get_scancode_byte();
-
-              if (byte == TWO_BYTE_CODE) {
-                bytes[0] = byte;
-                size = 2;
-              }
-              else {
-                if (size == 2) {
-                  bytes[1] = byte;
-                }
-                else {
-                  bytes[0] = byte;
+            if (!error_found) {
+              if (scancode == TWO_BYTE_CODE) {
+                is_two_bytes = true;
+                bytes = scancode;
+              } else {
+                if (is_two_bytes) {
+                  size = 2;
+                  bytes = scancode;
+                  is_two_bytes = false; 
+                } else {
                   size = 1;
+                  bytes = scancode;
                 }
-
-                if (print_scancode_from_bytes(bytes, size) != 0) {
-                  kbc_unsubscribe_int();
-                  return 1;
-                }
-
-                if (byte == ESC_BREAKCODE) done = true;
-
-                size = 0;
+                bool make = !(scancode & BIT(7));
+                kbd_print_scancode(make, size, &bytes);
               }
             }
           }
           break;
-        default:
-          break;
+        default: break;
       }
     }
   }
 
-  if (kbc_unsubscribe_int() != 0) return 1;
-
+  if (kbd_unsubscribe_int() != 0) return 1;
+  kbd_print_no_sysinb(sys_inb_counter);
   return 0;
 }
 
 int(kbd_test_poll)() {
-  uint8_t bytes[2];
+  bool is_two_bytes = false;
+  uint8_t bytes;
   uint8_t size = 0;
-  uint8_t data;
-  bool done = false;
+  uint8_t code = 0;
 
-  while (!done) {
-    if (kbc_read_outbuf_poll(&data) == 0) {
-      if (data == TWO_BYTE_CODE) {
-        bytes[0] = data;
-        size = 2;
-      }
-      else {
-        if (size == 2) {
-          bytes[1] = data;
-        }
-        else {
-          bytes[0] = data;
+  while (code != ESC_BREAKCODE) {
+    if (kbc_read_data_poll(&code) == 0) {
+      if (code == TWO_BYTE_CODE) {
+        is_two_bytes = true;
+        bytes = code;
+      } else {
+        if (is_two_bytes) {
+          size = 2;
+          bytes = code;
+          is_two_bytes = false;
+        } else {
           size = 1;
+          bytes = code;
         }
-
-        if (print_scancode_from_bytes(bytes, size) != 0) return 1;
-
-        if (data == ESC_BREAKCODE) done = true;
-
-        size = 0;
+        bool make = !(code & BIT(7));
+        kbd_print_scancode(make, size, &bytes);
       }
     }
   }
 
-  if (kbc_enable_interrupts() != 0) return 1;
-
-#ifdef LAB3
-  extern uint32_t kbc_get_sys_inb_count(void);
-  if (kbd_print_no_sysinb(kbc_get_sys_inb_count()) != 0) return 1;
-#endif
-
+  if (kbc_restore_interrupts() != 0) return 1;
+  
+  kbd_print_no_sysinb(sys_inb_counter);
   return 0;
 }
 
@@ -154,84 +114,62 @@ int(kbd_test_timed_scan)(uint8_t n) {
   int ipc_status, r;
   message msg;
 
-  uint8_t bytes[2];
-  uint8_t size = 0;
-  bool done = false;
-
-  timer_counter = 0;
-
-  if (kbc_subscribe_int(&kbd_bit_no) != 0) return 1;
-  if (timer_subscribe_local_int(&timer_bit_no) != 0) {
-    kbc_unsubscribe_int();
-    return 1;
-  }
+  if (kbd_subscribe_int(&kbd_bit_no) != 0) return 1;
+  if (timer_subscribe_int(&timer_bit_no) != 0) return 1;
 
   uint32_t kbd_irq_set = BIT(kbd_bit_no);
   uint32_t timer_irq_set = BIT(timer_bit_no);
 
-  while (!done) {
-    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
-      printf("driver_receive failed with: %d\n", r);
-      continue;
-    }
+  bool is_two_bytes = false;
+  uint8_t bytes;
+  uint8_t size = 0;
+
+  timer_counter = 0;
+
+  while (scancode != ESC_BREAKCODE && timer_counter < n * 60) {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) continue;
 
     if (is_ipc_notify(ipc_status)) {
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:
-          if (msg.m_notify.interrupts & timer_irq_set) {
-            timer_int_handler_local();
-
-            if (timer_counter >= (uint32_t)n * TIMER_FREQ) {
-              done = true;
-            }
-          }
-
+          
           if (msg.m_notify.interrupts & kbd_irq_set) {
             kbc_ih();
-
-            if (kbc_get_valid()) {
-              uint8_t byte = kbc_get_scancode_byte();
-
-              timer_counter = 0; /* reset idle time */
-
-              if (byte == TWO_BYTE_CODE) {
-                bytes[0] = byte;
-                size = 2;
-              }
-              else {
-                if (size == 2) {
-                  bytes[1] = byte;
-                }
-                else {
-                  bytes[0] = byte;
+            if (!error_found) {
+              if (scancode == TWO_BYTE_CODE) {
+                is_two_bytes = true;
+                bytes = scancode;
+              } else {
+                if (is_two_bytes) {
+                  size = 2;
+                  bytes = scancode;
+                  is_two_bytes = false;
+                } else {
                   size = 1;
+                  bytes = scancode;
                 }
-
-                if (print_scancode_from_bytes(bytes, size) != 0) {
-                  timer_unsubscribe_local_int();
-                  kbc_unsubscribe_int();
-                  return 1;
-                }
-
-                if (byte == ESC_BREAKCODE) done = true;
-
-                size = 0;
+                bool make = !(scancode & BIT(7));
+                kbd_print_scancode(make, size, &bytes);
+                
+                timer_counter = 0; 
               }
             }
           }
+          
+          if (msg.m_notify.interrupts & timer_irq_set) {
+            timer_int_handler();
+          }
+          
           break;
-        default:
-          break;
+        default: break;
       }
     }
   }
 
-  if (timer_unsubscribe_local_int() != 0) {
-    kbc_unsubscribe_int();
-    return 1;
-  }
+  if (kbd_unsubscribe_int() != 0) return 1;
+  if (timer_unsubscribe_int() != 0) return 1;
 
-  if (kbc_unsubscribe_int() != 0) return 1;
-
+  kbd_print_no_sysinb(sys_inb_counter);
   return 0;
 }
+
