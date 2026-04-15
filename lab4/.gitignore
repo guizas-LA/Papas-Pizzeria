@@ -1,0 +1,4 @@
+.gdbinit
+*.o
+lab3
+*.txt
