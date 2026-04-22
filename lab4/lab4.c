@@ -78,10 +78,10 @@ int (mouse_test_async)(uint8_t idle_time) {
     int ipc_status, r;
     message msg;
 
-    if (mouse_write_cmd(EN_DATA_REPORT) != 0) return 1;
-    
     if (mouse_subscribe_int(&mouse_bit_no) != 0) return 1;
     if (timer_subscribe_int(&timer_bit_no) != 0) return 1;
+
+    if (mouse_write_cmd(EN_DATA_REPORT) != 0) return 1;
 
     uint32_t mouse_irq_set = BIT(mouse_bit_no);
     uint32_t timer_irq_set = BIT(timer_bit_no);
