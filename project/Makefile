@@ -1,7 +1,10 @@
 PROG= proj
 
-SRCS= src/main.c src/loop.c src/interrupts.c src/game.c
+.PATH: src
 
+SRCS= main.c loop.c interrupts.c game.c
+
+CFLAGS += -Iinclude
 CFLAGS += -I../lab2
 CFLAGS += -I../lab3
 CFLAGS += -I../lab4

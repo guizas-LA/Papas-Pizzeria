@@ -1,0 +1,5 @@
+.gdbinit
+*.o
+proj
+trace.txt
+output.txt

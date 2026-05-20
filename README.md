@@ -7,6 +7,10 @@
 Welcome to your LCOM code repository. This is where your team should deliver all the required artifacts, including code.
 Please take your time to get acquainted with GitLab and its functionalities. The way your team uses Git and GitLab to collaborate will be evaluated. 
 
+```
+ssh lcom@localhost -p 2222
+```
+
 ## Boilerplate
 
 In this repository, you will find some pre-loaded files and an initial setup of your team's project board. 
