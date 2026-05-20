@@ -79,28 +79,34 @@ static bool mouse_inside(Game *game, int x, int y, int w, int h) {
 static void handle_click(Game *game) {
   if (!game->mouse_left_click) return;
 
-  if (game->state == STATE_ORDER) {
-    if (mouse_inside(game, 285, 460, 230, 70)) game->state = STATE_PREPARE;
-  } else if (game->state == STATE_PREPARE) {
-    if (mouse_inside(game, 95, 420, 130, 70)) game->selected_sauce = 0;
-    if (mouse_inside(game, 245, 420, 130, 70)) game->selected_sauce = 1;
-    if (mouse_inside(game, 425, 420, 80, 70)) game->selected_topping = 0;
-    if (mouse_inside(game, 525, 420, 80, 70)) game->selected_topping = 1;
-    if (mouse_inside(game, 625, 420, 80, 70)) game->selected_topping = 2;
-    if (mouse_inside(game, 285, 510, 230, 55)) game->state = STATE_OVEN;
-  } else if (game->state == STATE_OVEN) {
-    if (mouse_inside(game, 285, 500, 230, 60)) game->state = STATE_CUT;
-  } else if (game->state == STATE_CUT) {
-    if (mouse_inside(game, 135, 440, 110, 60)) game->selected_slices = 4;
-    if (mouse_inside(game, 265, 440, 110, 60)) game->selected_slices = 6;
-    if (mouse_inside(game, 395, 440, 110, 60)) game->selected_slices = 8;
-    if (mouse_inside(game, 555, 440, 110, 60)) serve_pizza(game);
-  } else if (game->state == STATE_SCORE) {
-    if (mouse_inside(game, 285, 475, 230, 65)) {
-      game->order_number++;
-      make_order(game);
-      game->state = STATE_ORDER;
-    }
+  switch (game->state) {
+    case STATE_ORDER:
+      if (mouse_inside(game, 285, 460, 230, 70)) game->state = STATE_PREPARE;
+      break;
+    case STATE_PREPARE:
+      if (mouse_inside(game, 95, 420, 130, 70)) game->selected_sauce = 0;
+      if (mouse_inside(game, 245, 420, 130, 70)) game->selected_sauce = 1;
+      if (mouse_inside(game, 425, 420, 80, 70)) game->selected_topping = 0;
+      if (mouse_inside(game, 525, 420, 80, 70)) game->selected_topping = 1;
+      if (mouse_inside(game, 625, 420, 80, 70)) game->selected_topping = 2;
+      if (mouse_inside(game, 285, 510, 230, 55)) game->state = STATE_OVEN;
+      break;
+    case STATE_OVEN:
+      if (mouse_inside(game, 285, 500, 230, 60)) game->state = STATE_CUT;
+      break;
+    case STATE_CUT:
+      if (mouse_inside(game, 135, 440, 110, 60)) game->selected_slices = 4;
+      if (mouse_inside(game, 265, 440, 110, 60)) game->selected_slices = 6;
+      if (mouse_inside(game, 395, 440, 110, 60)) game->selected_slices = 8;
+      if (mouse_inside(game, 555, 440, 110, 60)) serve_pizza(game);
+      break;
+    case STATE_SCORE:
+      if (mouse_inside(game, 285, 475, 230, 65)) {
+        game->order_number++;
+        make_order(game);
+        game->state = STATE_ORDER;
+      }
+      break;
   }
 
   game->mouse_left_click = false;
@@ -112,26 +118,62 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
     return;
   }
 
-  if (game->state == STATE_ORDER && scancode == ENTER_BREAK) {
-    game->state = STATE_PREPARE;
-  } else if (game->state == STATE_PREPARE) {
-    if (scancode == KEY_1_BREAK) game->selected_sauce = 0;
-    if (scancode == KEY_2_BREAK) game->selected_sauce = 1;
-    if (scancode == KEY_3_BREAK) game->selected_topping = 0;
-    if (scancode == KEY_4_BREAK) game->selected_topping = 1;
-    if (scancode == KEY_5_BREAK) game->selected_topping = 2;
-    if (scancode == ENTER_BREAK) game->state = STATE_OVEN;
-  } else if (game->state == STATE_OVEN && scancode == ENTER_BREAK) {
-    game->state = STATE_CUT;
-  } else if (game->state == STATE_CUT) {
-    if (scancode == KEY_4_BREAK) game->selected_slices = 4;
-    if (scancode == KEY_6_BREAK) game->selected_slices = 6;
-    if (scancode == KEY_8_BREAK) game->selected_slices = 8;
-    if (scancode == ENTER_BREAK) serve_pizza(game);
-  } else if (game->state == STATE_SCORE && scancode == ENTER_BREAK) {
-    game->order_number++;
-    make_order(game);
-    game->state = STATE_ORDER;
+  switch (game->state) {
+    case STATE_ORDER:
+      if (scancode == ENTER_BREAK) game->state = STATE_PREPARE;
+      break;
+    case STATE_PREPARE:
+      switch (scancode) {
+        case KEY_1_BREAK:
+          game->selected_sauce = 0;
+          break;
+        case KEY_2_BREAK:
+          game->selected_sauce = 1;
+          break;
+        case KEY_3_BREAK:
+          game->selected_topping = 0;
+          break;
+        case KEY_4_BREAK:
+          game->selected_topping = 1;
+          break;
+        case KEY_5_BREAK:
+          game->selected_topping = 2;
+          break;
+        case ENTER_BREAK:
+          game->state = STATE_OVEN;
+          break;
+        default:
+          break;
+      }
+      break;
+    case STATE_OVEN:
+      if (scancode == ENTER_BREAK) game->state = STATE_CUT;
+      break;
+    case STATE_CUT:
+      switch (scancode) {
+        case KEY_4_BREAK:
+          game->selected_slices = 4;
+          break;
+        case KEY_6_BREAK:
+          game->selected_slices = 6;
+          break;
+        case KEY_8_BREAK:
+          game->selected_slices = 8;
+          break;
+        case ENTER_BREAK:
+          serve_pizza(game);
+          break;
+        default:
+          break;
+      }
+      break;
+    case STATE_SCORE:
+      if (scancode == ENTER_BREAK) {
+        game->order_number++;
+        make_order(game);
+        game->state = STATE_ORDER;
+      }
+      break;
   }
 }
 
@@ -150,8 +192,12 @@ void game_handle_mouse_packet(Game *game, struct packet *packet) {
 void game_update(Game *game) {
   game->tick++;
 
-  if (game->state == STATE_OVEN) {
-    game->oven_ticks++;
+  switch (game->state) {
+    case STATE_OVEN:
+      game->oven_ticks++;
+      break;
+    default:
+      break;
   }
 
   handle_click(game);
@@ -217,8 +263,17 @@ static void draw_pizza(Game *game) {
 
   if (game->selected_topping >= 0) {
     uint32_t topping_color = rgb(95, 45, 25);
-    if (game->selected_topping == 1) topping_color = rgb(40, 130, 60);
-    if (game->selected_topping == 2) topping_color = rgb(225, 225, 210);
+
+    switch (game->selected_topping) {
+      case 1:
+        topping_color = rgb(40, 130, 60);
+        break;
+      case 2:
+        topping_color = rgb(225, 225, 210);
+        break;
+      default:
+        break;
+    }
 
     draw_circle(360, 205, 12, topping_color);
     draw_circle(430, 205, 12, topping_color);
@@ -240,39 +295,45 @@ void game_draw(Game *game) {
 
   draw_order_ticket(game);
 
-  if (game->state == STATE_ORDER) {
-    draw_panel(300, 120, 300, 250, rgb(115, 76, 43));
-    draw_circle(400, 230, 65, rgb(238, 190, 90));
-    draw_button(285, 460, 230, 70, false, rgb(235, 180, 70));
-  } else if (game->state == STATE_PREPARE) {
-    draw_pizza(game);
-    draw_button(95, 420, 130, 70, game->selected_sauce == 0, rgb(190, 45, 35));
-    draw_button(245, 420, 130, 70, game->selected_sauce == 1, rgb(245, 235, 180));
-    draw_button(425, 420, 80, 70, game->selected_topping == 0, rgb(95, 45, 25));
-    draw_button(525, 420, 80, 70, game->selected_topping == 1, rgb(40, 130, 60));
-    draw_button(625, 420, 80, 70, game->selected_topping == 2, rgb(225, 225, 210));
-    draw_button(285, 510, 230, 55, false, rgb(220, 130, 35));
-  } else if (game->state == STATE_OVEN) {
-    oven_bar_width = game->oven_ticks * 430 / (game->order.cook_seconds * GAME_FPS * 2);
-    if (oven_bar_width > 430) oven_bar_width = 430;
+  switch (game->state) {
+    case STATE_ORDER:
+      draw_panel(300, 120, 300, 250, rgb(115, 76, 43));
+      draw_circle(400, 230, 65, rgb(238, 190, 90));
+      draw_button(285, 460, 230, 70, false, rgb(235, 180, 70));
+      break;
+    case STATE_PREPARE:
+      draw_pizza(game);
+      draw_button(95, 420, 130, 70, game->selected_sauce == 0, rgb(190, 45, 35));
+      draw_button(245, 420, 130, 70, game->selected_sauce == 1, rgb(245, 235, 180));
+      draw_button(425, 420, 80, 70, game->selected_topping == 0, rgb(95, 45, 25));
+      draw_button(525, 420, 80, 70, game->selected_topping == 1, rgb(40, 130, 60));
+      draw_button(625, 420, 80, 70, game->selected_topping == 2, rgb(225, 225, 210));
+      draw_button(285, 510, 230, 55, false, rgb(220, 130, 35));
+      break;
+    case STATE_OVEN:
+      oven_bar_width = game->oven_ticks * 430 / (game->order.cook_seconds * GAME_FPS * 2);
+      if (oven_bar_width > 430) oven_bar_width = 430;
 
-    vg_draw_rectangle(250, 135, 300, 210, rgb(80, 80, 80));
-    vg_draw_rectangle(275, 160, 250, 160, rgb(230, 120, 45));
-    draw_pizza(game);
-    vg_draw_rectangle(180, 395, 440, 35, rgb(80, 80, 80));
-    vg_draw_rectangle(185, 400, oven_bar_width, 25, rgb(235, 180, 70));
-    draw_button(285, 500, 230, 60, false, rgb(235, 180, 70));
-  } else if (game->state == STATE_CUT) {
-    draw_pizza(game);
-    draw_number(390, 355, game->selected_slices, rgb(80, 50, 30));
-    draw_button(135, 440, 110, 60, game->selected_slices == 4, rgb(235, 180, 70));
-    draw_button(265, 440, 110, 60, game->selected_slices == 6, rgb(235, 180, 70));
-    draw_button(395, 440, 110, 60, game->selected_slices == 8, rgb(235, 180, 70));
-    draw_button(555, 440, 110, 60, false, rgb(90, 160, 90));
-  } else {
-    draw_panel(275, 130, 250, 260, rgb(115, 76, 43));
-    draw_number(360, 215, game->last_points, rgb(60, 120, 70));
-    draw_button(285, 475, 230, 65, false, rgb(235, 180, 70));
+      vg_draw_rectangle(250, 135, 300, 210, rgb(80, 80, 80));
+      vg_draw_rectangle(275, 160, 250, 160, rgb(230, 120, 45));
+      draw_pizza(game);
+      vg_draw_rectangle(180, 395, 440, 35, rgb(80, 80, 80));
+      vg_draw_rectangle(185, 400, oven_bar_width, 25, rgb(235, 180, 70));
+      draw_button(285, 500, 230, 60, false, rgb(235, 180, 70));
+      break;
+    case STATE_CUT:
+      draw_pizza(game);
+      draw_number(390, 355, game->selected_slices, rgb(80, 50, 30));
+      draw_button(135, 440, 110, 60, game->selected_slices == 4, rgb(235, 180, 70));
+      draw_button(265, 440, 110, 60, game->selected_slices == 6, rgb(235, 180, 70));
+      draw_button(395, 440, 110, 60, game->selected_slices == 8, rgb(235, 180, 70));
+      draw_button(555, 440, 110, 60, false, rgb(90, 160, 90));
+      break;
+    case STATE_SCORE:
+      draw_panel(275, 130, 250, 260, rgb(115, 76, 43));
+      draw_number(360, 215, game->last_points, rgb(60, 120, 70));
+      draw_button(285, 475, 230, 65, false, rgb(235, 180, 70));
+      break;
   }
 
   vg_draw_rectangle(game->mouse_x, game->mouse_y, 12, 3, rgb(20, 20, 20));
