@@ -6,7 +6,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "game.h"
+#include "game_state.h"
+#include "draw.h"
 #include "graphics.h"
 #include "interrupts.h"
 #include "mouse.h"

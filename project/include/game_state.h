@@ -1,8 +1,7 @@
-#ifndef PROJECT_GAME_H
-#define PROJECT_GAME_H
+#ifndef PROJECT_GAME_STATE_H
+#define PROJECT_GAME_STATE_H
 
 #include <lcom/lcf.h>
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -10,22 +9,28 @@
 #define GAME_FPS 60
 
 typedef enum {
-  STATE_ORDER,
-  STATE_PREPARE,
-  STATE_OVEN,
-  STATE_CUT,
-  STATE_SCORE
+  GAME_STATE_MENU,
+  GAME_STATE_PLAYING
 } GameState;
+
+typedef enum {
+  PLAYING_TAKE_ORDER,
+  PLAYING_PREPARE_PIZZA,
+  PLAYING_CUT,
+  PLAYING_SERVE
+} PlayingState;
 
 typedef struct {
   int sauce;
   int topping;
   int cook_seconds;
   int slices;
+  char name[8];
 } Order;
 
 typedef struct {
   GameState state;
+  PlayingState playing_state;
   bool running;
   int tick;
   int order_number;
@@ -36,7 +41,11 @@ typedef struct {
   int selected_sauce;
   int selected_topping;
   int oven_ticks;
+  bool pizza_in_oven;
   int selected_slices;
+
+  char typed_name[8];
+  int typed_len;
 
   int mouse_x;
   int mouse_y;
@@ -48,6 +57,5 @@ bool game_is_running(Game *game);
 void game_handle_keyboard(Game *game, uint8_t scancode);
 void game_handle_mouse_packet(Game *game, struct packet *packet);
 void game_update(Game *game);
-void game_draw(Game *game);
 
 #endif
