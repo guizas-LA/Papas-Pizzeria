@@ -1,6 +1,6 @@
 PROG= proj
 
-SRCS= src/main.c
+SRCS= src/main.c src/loop.c src/interrupts.c src/game.c
 
 CFLAGS += -I../lab2
 CFLAGS += -I../lab3
