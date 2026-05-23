@@ -2,7 +2,7 @@ PROG= proj
 
 .PATH: src ../lab2
 
-SRCS= main.c loop.c interrupts.c game_state.c draw.c timer.c
+SRCS= main.c loop.c interrupts.c game_state.c draw.c draw_utils.c timer.c
 
 CFLAGS += -Iinclude
 CFLAGS += -I../lab2
