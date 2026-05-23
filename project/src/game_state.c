@@ -136,10 +136,10 @@ static void handle_click(Game *game) {
           break;
 
         case PLAYING_CUT:
-          if (mouse_inside(game, 135, 440, 110, 60)) game->selected_slices = 4;
-          if (mouse_inside(game, 265, 440, 110, 60)) game->selected_slices = 6;
-          if (mouse_inside(game, 395, 440, 110, 60)) game->selected_slices = 8;
-          if (mouse_inside(game, 555, 440, 110, 60))
+          if (mouse_inside(game, 215, 440, 110, 60)) game->selected_slices = 4;
+          if (mouse_inside(game, 345, 440, 110, 60)) game->selected_slices = 6;
+          if (mouse_inside(game, 475, 440, 110, 60)) game->selected_slices = 8;
+          if (mouse_inside(game, 285, 520, 230, 50))
             game->playing_state = PLAYING_SERVE;
           break;
 
