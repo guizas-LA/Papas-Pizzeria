@@ -2,22 +2,24 @@
 #include "draw_utils.h"
 #include "graphics.h"
 #include <string.h>
+#include "menu.xpm"
+#include "take.xpm"
 
 #define SCREEN_W 800
 #define SCREEN_H 600
 
-static void draw_order_ticket(Game *game, bool show_ingredients) {
+static void draw_order_ticket(Game *game, bool show_ingredients, int x, int y) {
   char s[2];
-  draw_panel(40, 80, 210, 210, rgb(115, 76, 43));
-  draw_string(56, 92, game->order.name, 2, rgb(50, 70, 160));
+  draw_panel(x, y, 180, 390, rgb(115, 76, 43));
+  draw_string(x + 16, y + 12, game->order.name, 2, rgb(50, 70, 160));
   if (show_ingredients) {
-    vg_draw_rectangle(75, 115, 70 + game->order.sauce * 70,   25, rgb(190, 50,  40));
-    vg_draw_rectangle(75, 155, 45 + game->order.topping * 35, 25, rgb(60,  140, 70));
+    vg_draw_rectangle(x + 35, y + 35, 70 + game->order.sauce * 70,   25, rgb(190, 50,  40));
+    vg_draw_rectangle(x + 35, y + 75, 45 + game->order.topping * 35, 25, rgb(60,  140, 70));
   }
   s[0] = '0' + game->order.cook_seconds; s[1] = '\0';
-  draw_string(75, 198, s, 3, rgb(220, 130, 35));
+  draw_string(x + 35, y + 118, s, 3, rgb(220, 130, 35));
   s[0] = '0' + game->order.slices; s[1] = '\0';
-  draw_string(75, 243, s, 3, rgb(90, 120, 200));
+  draw_string(x + 35, y + 163, s, 3, rgb(90, 120, 200));
 }
 
 static void draw_pizza(Game *game) {
@@ -53,16 +55,23 @@ static void draw_state_label(PlayingState state) {
 
 
 void game_draw(Game *game) {
+  static uint8_t *menu_pixmap = NULL;
+  static xpm_image_t menu_img;
+  static uint8_t *take_pixmap = NULL;
+  static xpm_image_t take_img;
   int oven_bar_width;
   int name_x, name_len;
+
+  if (menu_pixmap == NULL)
+    menu_pixmap = xpm_load((xpm_map_t) papas_pizzeria_bg, XPM_8_8_8, &menu_img);
+  if (take_pixmap == NULL)
+    take_pixmap = xpm_load((xpm_map_t) papas_clean_scene, XPM_8_8_8, &take_img);
 
   vg_clear_buffer(rgb(215, 220, 205));
 
   switch (game->state) {
     case GAME_STATE_MENU:
-      vg_draw_rectangle(0, 0, SCREEN_W, SCREEN_H, rgb(115, 76, 43));
-      draw_string(161, 185, "PAPAS PIZZERIA", 5, rgb(252, 220, 140));
-      draw_string(196, 340, "PRESS ENTER TO PLAY", 3, rgb(222, 190, 120));
+      vg_draw_xpm(menu_pixmap, menu_img, 0, 0);
       if (game->last_points > 0)
         draw_number(370, 430, game->last_points, rgb(180, 230, 130));
       break;
@@ -78,14 +87,15 @@ void game_draw(Game *game) {
       switch (game->playing_state) {
 
         case PLAYING_TAKE_ORDER:
-          draw_order_ticket(game, game->playing_state == PLAYING_PREPARE_PIZZA);
+          vg_draw_xpm(take_pixmap, take_img, 0, 0);
+          draw_order_ticket(game, false, 610, 80);
           draw_button(285, 460, 230, 70, false, rgb(235, 180, 70));
           draw_string(346, 488, "NEXT STEP", 2, rgb(80, 50, 20));
           break;
 
         case PLAYING_PREPARE_PIZZA:
           if (!game->pizza_in_oven) {
-            draw_order_ticket(game, game->playing_state == PLAYING_PREPARE_PIZZA);
+            draw_order_ticket(game, true, 40, 80);
             draw_pizza(game);
             draw_button(95,  420, 130, 70, game->selected_sauce   == 0, rgb(190, 45,  35));
             draw_button(245, 420, 130, 70, game->selected_sauce   == 1, rgb(245, 235, 180));
