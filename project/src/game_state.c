@@ -15,6 +15,12 @@
 #define KEY_6_BREAK    0x87
 #define KEY_8_BREAK    0x89
 
+#define EXTENDED_PREFIX   0xE0
+#define ARROW_UP_MAKE     0x48
+#define ARROW_DOWN_MAKE   0x50
+
+#define NUM_MENU_OPTIONS 3
+
 static const char *CUSTOMER_NAMES[] = { "ANA", "BOUCA", "GUI", "BRUNO", "DAGA" };
 #define NUM_CUSTOMERS 5
 
@@ -68,6 +74,7 @@ void game_init(Game *game) {
   game->mouse_x       = SCREEN_W / 2;
   game->mouse_y       = SCREEN_H / 2;
   game->mouse_left_click = false;
+  game->menu_option   = 0;
   make_order(game);
 }
 
@@ -93,7 +100,6 @@ static void serve_pizza(Game *game) {
   game->score += points;
   game->order_number++;
   make_order(game);
-  game->state         = GAME_STATE_MENU;
   game->playing_state = PLAYING_TAKE_ORDER;
 }
 
@@ -107,9 +113,13 @@ static void handle_click(Game *game) {
 
   switch (game->state) {
     case GAME_STATE_MENU:
-      if (mouse_inside(game, 285, 460, 230, 70)) {
+      if (mouse_inside(game, 285, 355, 230, 70)) {
         game->state         = GAME_STATE_PLAYING;
         game->playing_state = PLAYING_TAKE_ORDER;
+      } else if (mouse_inside(game, 285, 445, 230, 70)) {
+        /* OPCOES — no action */
+      } else if (mouse_inside(game, 285, 530, 230, 70)) {
+        game->running = false;
       }
       break;
 
@@ -155,16 +165,45 @@ static void handle_click(Game *game) {
 }
 
 void game_handle_keyboard(Game *game, uint8_t scancode) {
+  static bool extended = false;
+
   if (scancode == ESC_BREAK) {
     game->running = false;
+    return;
+  }
+
+  if (scancode == EXTENDED_PREFIX) {
+    extended = true;
+    return;
+  }
+
+  if (extended) {
+    extended = false;
+    if (game->state == GAME_STATE_MENU) {
+      if (scancode == ARROW_UP_MAKE) {
+        game->menu_option = (game->menu_option + NUM_MENU_OPTIONS - 1) % NUM_MENU_OPTIONS;
+      } else if (scancode == ARROW_DOWN_MAKE) {
+        game->menu_option = (game->menu_option + 1) % NUM_MENU_OPTIONS;
+      }
+    }
     return;
   }
 
   switch (game->state) {
     case GAME_STATE_MENU:
       if (scancode == ENTER_BREAK) {
-        game->state         = GAME_STATE_PLAYING;
-        game->playing_state = PLAYING_TAKE_ORDER;
+        switch (game->menu_option) {
+          case 0:
+            game->state         = GAME_STATE_PLAYING;
+            game->playing_state = PLAYING_TAKE_ORDER;
+            break;
+          case 1:
+            /* OPCOES — no action */
+            break;
+          case 2:
+            game->running = false;
+            break;
+        }
       }
       break;
 

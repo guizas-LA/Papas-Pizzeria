@@ -53,7 +53,6 @@ static void draw_state_label(PlayingState state) {
   }
 }
 
-
 void game_draw(Game *game) {
   static uint8_t *menu_pixmap = NULL;
   static xpm_image_t menu_img;
@@ -70,11 +69,28 @@ void game_draw(Game *game) {
   vg_clear_buffer(rgb(215, 220, 205));
 
   switch (game->state) {
-    case GAME_STATE_MENU:
+    case GAME_STATE_MENU: {
+      int hover;
       vg_draw_xpm(menu_pixmap, menu_img, 0, 0);
+
+      hover = -1;
+      if (game->mouse_x >= 285 && game->mouse_x < 515) {
+        if      (game->mouse_y >= 355 && game->mouse_y < 425) hover = 0;
+        else if (game->mouse_y >= 445 && game->mouse_y < 515) hover = 1;
+        else if (game->mouse_y >= 530 && game->mouse_y < 600) hover = 2;
+      }
+
+      draw_button(285, 355, 230, 70, game->menu_option == 0 || hover == 0, rgb(180, 40,  40));
+      draw_string(345, 378, "JOGAR",  3, rgb(255, 220, 220));
+      draw_button(285, 445, 230, 70, game->menu_option == 1 || hover == 1, rgb(40,  80,  180));
+      draw_string(337, 468, "OPCOES", 3, rgb(200, 220, 255));
+      draw_button(285, 530, 230, 70, game->menu_option == 2 || hover == 2, rgb(50,  50,  50));
+      draw_string(357, 553, "SAIR",   3, rgb(200, 200, 200));
+
       if (game->last_points > 0)
-        draw_number(370, 430, game->last_points, rgb(180, 230, 130));
+        draw_number(370, 490, game->last_points, rgb(180, 230, 130));
       break;
+    }
 
     case GAME_STATE_PLAYING:
       vg_draw_rectangle(0, 0, SCREEN_W, 60, rgb(165, 45, 40));
@@ -88,7 +104,7 @@ void game_draw(Game *game) {
 
         case PLAYING_TAKE_ORDER:
           vg_draw_xpm(take_pixmap, take_img, 0, 0);
-          draw_order_ticket(game, false, 610, 80);
+          draw_order_ticket(game, false, 615, 80);
           draw_button(285, 460, 230, 70, false, rgb(235, 180, 70));
           draw_string(346, 488, "NEXT STEP", 2, rgb(80, 50, 20));
           break;

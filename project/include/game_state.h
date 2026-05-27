@@ -50,6 +50,8 @@ typedef struct {
   int mouse_x;
   int mouse_y;
   bool mouse_left_click;
+
+  int menu_option;
 } Game;
 
 void game_init(Game *game);
