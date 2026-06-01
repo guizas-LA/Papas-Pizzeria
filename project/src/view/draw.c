@@ -1,7 +1,7 @@
 #include "draw.h"
+#include "draw_elements.h"
 #include "draw_utils.h"
 #include "graphics.h"
-#include <string.h>
 #include "menu.xpm"
 #include "take.xpm"
 #include "prepare.xpm"
@@ -10,68 +10,6 @@
 
 #define SCREEN_W 800
 #define SCREEN_H 600
-
-static const char *SAUCE_NAMES[]   = { "MOLHO DE TOMATE", "MOLHO BRANCO" };
-static const char *TOPPING_NAMES[] = {"COGUMELO", "CHORICO", "FIAMBRE", "ANANAS", "QUEIJO", "AZEITONA"};
-static const uint32_t TOPPING_COLORS[] = {
-  0x8C6432,
-  0xBE2814,
-  0xE68282,
-  0xF0C832,
-  0xF5E164,
-  0x284619,
-};
-
-static void draw_order_ticket(Game *game, int x, int y) {
-  char buf[12];
-  int i;
-  draw_panel(x, y, 180, 390, rgb(115, 76, 43));
-  draw_string(x + 12, y + 12, game->order.name, 2, rgb(0, 0, 0));
-  draw_string(x + 12, y + 42, SAUCE_NAMES[game->order.sauce], 1, rgb(0, 0, 0));
-  for (i = 0; i < 3; i++)
-    draw_string(x + 12, y + 58 + i * 16, TOPPING_NAMES[game->order.toppings[i]], 1, rgb(0, 0, 0));
-
-  buf[0] = '0' + game->order.cook_seconds;
-  buf[1] = ' '; buf[2] = 'S'; buf[3] = 'E'; buf[4] = 'G'; buf[5] = 'U';
-  buf[6] = 'N'; buf[7] = 'D'; buf[8] = 'O'; buf[9] = 'S'; buf[10] = '\0';
-  draw_string(x + 12, y + 115, buf, 2, rgb(0, 0, 0));
-
-  buf[0] = '0' + game->order.slices;
-  buf[1] = ' '; buf[2] = 'F'; buf[3] = 'A'; buf[4] = 'T'; buf[5] = 'I';
-  buf[6] = 'A'; buf[7] = 'S'; buf[8] = '\0';
-  draw_string(x + 12, y + 140, buf, 2, rgb(0, 0, 0));
-}
-
-static bool topping_selected(Game *game, int t) {
-  int i;
-  for (i = 0; i < game->num_selected_toppings; i++)
-    if (game->selected_toppings[i] == t) return true;
-  return false;
-}
-
-static const int PIZZA_DOT_X[] = {360, 430, 390, 450, 345, 415};
-static const int PIZZA_DOT_Y[] = {205, 205, 250, 265, 270, 285};
-
-static void draw_pizza(Game *game) {
-  int i;
-  draw_circle(400, 235, 105, rgb(222, 175, 82));
-  draw_circle(400, 235, 88,  game->selected_sauce == 1 ? rgb(245, 235, 180) : rgb(190, 45, 35));
-  for (i = 0; i < game->num_selected_toppings; i++) {
-    uint32_t color = TOPPING_COLORS[game->selected_toppings[i]];
-    draw_circle(PIZZA_DOT_X[i * 2],     PIZZA_DOT_Y[i * 2],     12, color);
-    draw_circle(PIZZA_DOT_X[i * 2 + 1], PIZZA_DOT_Y[i * 2 + 1], 12, color);
-  }
-}
-
-static void draw_state_label(PlayingState state) {
-  uint32_t color = rgb(255, 240, 160);
-  switch (state) {
-    case PLAYING_TAKE_ORDER:    draw_string(730, 18, "ORDER",   2, color); break;
-    case PLAYING_PREPARE_PIZZA: draw_string(706, 18, "PREPARE", 2, color); break;
-    case PLAYING_CUT:           draw_string(754, 18, "CUT",     2, color); break;
-    case PLAYING_SERVE:         draw_string(730, 18, "SERVE",   2, color); break;
-  }
-}
 
 void game_draw(Game *game) {
   static uint8_t *menu_pixmap    = NULL; static xpm_image_t menu_img;
@@ -82,11 +20,11 @@ void game_draw(Game *game) {
   int oven_bar_width;
   int name_x, name_len;
 
-  if (menu_pixmap    == NULL) menu_pixmap    = xpm_load((xpm_map_t) papas_pizzeria_bg, XPM_8_8_8, &menu_img);
-  if (take_pixmap    == NULL) take_pixmap    = xpm_load((xpm_map_t) papas_clean_scene, XPM_8_8_8, &take_img);
-  if (prepare_pixmap == NULL) prepare_pixmap = xpm_load((xpm_map_t) prepare_xpm,       XPM_8_8_8, &prepare_img);
-  if (cook_pixmap    == NULL) cook_pixmap    = xpm_load((xpm_map_t) cook_xpm,          XPM_8_8_8, &cook_img);
-  if (cut_pixmap     == NULL) cut_pixmap     = xpm_load((xpm_map_t) cut_xpm,           XPM_8_8_8, &cut_img);
+  if (menu_pixmap    == NULL) menu_pixmap    = xpm_load((xpm_map_t) papas_pizzeria_bg,   XPM_8_8_8, &menu_img);
+  if (take_pixmap    == NULL) take_pixmap    = xpm_load((xpm_map_t) papas_takeorder_xpm, XPM_8_8_8, &take_img);
+  if (prepare_pixmap == NULL) prepare_pixmap = xpm_load((xpm_map_t) pizza_prepare_xpm,   XPM_8_8_8, &prepare_img);
+  if (cook_pixmap    == NULL) cook_pixmap    = xpm_load((xpm_map_t) pizza_cook_xpm,      XPM_8_8_8, &cook_img);
+  if (cut_pixmap     == NULL) cut_pixmap     = xpm_load((xpm_map_t) pizza_cut_xpm,       XPM_8_8_8, &cut_img);
 
   vg_clear_buffer(rgb(215, 220, 205));
 
@@ -103,11 +41,11 @@ void game_draw(Game *game) {
       }
 
       draw_button(285, 355, 230, 70, game->menu_option == 0 || hover == 0, rgb(180, 40,  40));
-      draw_string(345, 378, "JOGAR",  3, rgb(255, 220, 220));
+      draw_button_label(285, 355, 230, 70, "JOGAR",  3, rgb(255, 220, 220));
       draw_button(285, 445, 230, 70, game->menu_option == 1 || hover == 1, rgb(40,  80,  180));
-      draw_string(337, 468, "OPCOES", 3, rgb(200, 220, 255));
+      draw_button_label(285, 445, 230, 70, "OPCOES", 3, rgb(200, 220, 255));
       draw_button(285, 530, 230, 70, game->menu_option == 2 || hover == 2, rgb(50,  50,  50));
-      draw_string(357, 553, "SAIR",   3, rgb(200, 200, 200));
+      draw_button_label(285, 530, 230, 70, "SAIR",   3, rgb(200, 200, 200));
 
       if (game->last_points > 0)
         draw_number(370, 490, game->last_points, rgb(180, 230, 130));
@@ -125,61 +63,66 @@ void game_draw(Game *game) {
 
         case PLAYING_TAKE_ORDER:
           vg_draw_xpm(take_pixmap, take_img, 0, 0);
-          draw_order_ticket(game, 615, 80);
-          draw_button(618, 480, 174, 40, false, rgb(90, 160, 90));
-          draw_string(635, 491, "TAKE ORDER", 2, rgb(30, 60, 30));
+          draw_order_ticket(game, 602, 40);
+          draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
+          draw_button_label(605, 495, 174, 40, "TAKE ORDER", 2, rgb(30, 60, 30));
           break;
 
         case PLAYING_PREPARE_PIZZA:
           if (!game->pizza_in_oven) {
             vg_draw_xpm(prepare_pixmap, prepare_img, 0, 0);
-            draw_order_ticket(game, 615, 80);
-            draw_pizza(game);
+            draw_order_ticket(game, 602, 40);
+            draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
+            draw_button_label(605, 495, 174, 40, "MAKE PIZZA", 2, rgb(30, 60, 30));
+
+            draw_pizza(game, 285, 265, 150);
             draw_button(250, 365, 120, 50, game->selected_sauce == 0, rgb(190, 45, 35));
-            draw_string(274, 383, "TOMATE", 2, rgb(255, 210, 200));
+            draw_button_label(250, 365, 120, 50, "TOMATE", 2, rgb(255, 210, 200));
             draw_button(380, 365, 120, 50, game->selected_sauce == 1, rgb(245, 235, 180));
-            draw_string(404, 383, "BRANCO", 2, rgb(80, 70, 40));
+            draw_button_label(380, 365, 120, 50, "BRANCO", 2, rgb(80, 70, 40));
             draw_button(250, 425, 80, 50, topping_selected(game, 0), TOPPING_COLORS[0]);
-            draw_string(258, 446, "COGUMELO", 1, rgb(255, 240, 210));
+            draw_button_label(250, 425, 80, 50, "COGUMELO", 1, rgb(255, 240, 210));
             draw_button(340, 425, 80, 50, topping_selected(game, 1), TOPPING_COLORS[1]);
-            draw_string(352, 446, "CHORICO", 1, rgb(255, 210, 200));
+            draw_button_label(340, 425, 80, 50, "CHORICO", 1, rgb(255, 210, 200));
             draw_button(430, 425, 80, 50, topping_selected(game, 2), TOPPING_COLORS[2]);
-            draw_string(442, 446, "FIAMBRE", 1, rgb(80, 40, 40));
+            draw_button_label(430, 425, 80, 50, "FIAMBRE", 1, rgb(80, 40, 40));
             draw_button(250, 485, 80, 50, topping_selected(game, 3), TOPPING_COLORS[3]);
-            draw_string(264, 506, "ANANAS", 1, rgb(80, 60, 10));
+            draw_button_label(250, 485, 80, 50, "ANANAS", 1, rgb(80, 60, 10));
             draw_button(340, 485, 80, 50, topping_selected(game, 4), TOPPING_COLORS[4]);
-            draw_string(354, 506, "QUEIJO", 1, rgb(80, 70, 10));
+            draw_button_label(340, 485, 80, 50, "QUEIJO", 1, rgb(80, 70, 10));
             draw_button(430, 485, 80, 50, topping_selected(game, 5), TOPPING_COLORS[5]);
-            draw_string(434, 506, "AZEITONA", 1, rgb(200, 230, 180));
-            draw_button(618, 480, 174, 40, false, rgb(90, 160, 90));
-            draw_string(635, 491, "MAKE PIZZA", 2, rgb(30, 60, 30));
+            draw_button_label(430, 485, 80, 50, "AZEITONA", 1, rgb(200, 230, 180));
+            
           }
           else {
-            oven_bar_width = game->oven_ticks * 430 / (game->order.cook_seconds * GAME_FPS * 2);
-            if (oven_bar_width > 430) oven_bar_width = 430;
+            oven_bar_width = game->oven_ticks * 420 / (game->order.cook_seconds * GAME_FPS * 2);
+            if (oven_bar_width > 420) oven_bar_width = 420;
 
             vg_draw_xpm(cook_pixmap, cook_img, 0, 0);
-            draw_order_ticket(game, 615, 80);
-            draw_pizza(game);
-            vg_draw_rectangle(180, 395, 440, 35, rgb(80, 80, 80));
-            vg_draw_rectangle(185, 400, oven_bar_width, 25, rgb(235, 180, 70));
-            draw_button(618, 480, 174, 40, false, rgb(90, 160, 90));
-            draw_string(635, 491, "STOP", 2, rgb(30, 60, 30));
+            draw_order_ticket(game, 602, 40);
+            draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
+            draw_button_label(605, 495, 174, 40, "STOP", 2, rgb(30, 60, 30));
+
+            vg_draw_rectangle(85, 45, 420, 22, rgb(60, 60, 60));
+            vg_draw_rectangle(85, 45, oven_bar_width, 22, rgb(235, 180, 70));
+
+            draw_pizza(game, 300, 320, 150);
           }
           break;
 
         case PLAYING_CUT:
           vg_draw_xpm(cut_pixmap, cut_img, 0, 0);
-          draw_order_ticket(game, 615, 80);
-          draw_pizza(game);
-          draw_button(215, 440, 110, 60, game->selected_slices == 4, rgb(235, 180, 70));
-          draw_string(263, 460, "4", 3, rgb(80, 50, 20));
-          draw_button(345, 440, 110, 60, game->selected_slices == 6, rgb(235, 180, 70));
-          draw_string(393, 460, "6", 3, rgb(80, 50, 20));
-          draw_button(475, 440, 110, 60, game->selected_slices == 8, rgb(235, 180, 70));
-          draw_string(523, 460, "8", 3, rgb(80, 50, 20));
-          draw_button(618, 480, 174, 40, false, rgb(90, 160, 90));
-          draw_string(635, 491, "NEXT STEP", 2, rgb(30, 60, 30));
+          draw_order_ticket(game, 602, 40);
+          draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
+          draw_button_label(605, 495, 174, 40, "TAKE ORDER", 2, rgb(30, 60, 30));
+          
+          draw_pizza(game, 300, 320, 150);
+          draw_button(115, 525, 110, 60, game->selected_slices == 4, rgb(235, 180, 70));
+          draw_button_label(115, 525, 110, 60, "4", 3, rgb(80, 50, 20));
+          draw_button(245, 525, 110, 60, game->selected_slices == 6, rgb(235, 180, 70));
+          draw_button_label(245, 525, 110, 60, "6", 3, rgb(80, 50, 20));
+          draw_button(375, 525, 110, 60, game->selected_slices == 8, rgb(235, 180, 70));
+          draw_button_label(375, 525, 110, 60, "8", 3, rgb(80, 50, 20));
           break;
 
         case PLAYING_SERVE:
@@ -196,7 +139,7 @@ void game_draw(Game *game) {
           }
 
           draw_button(285, 460, 230, 60, false, rgb(90, 160, 90));
-          draw_string(358, 483, "DELIVER", 2, rgb(30, 60, 30));
+          draw_button_label(285, 460, 230, 60, "DELIVER", 2, rgb(30, 60, 30));
           break;
       }
       break;

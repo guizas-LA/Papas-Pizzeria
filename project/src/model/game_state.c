@@ -168,7 +168,7 @@ static void handle_click(Game *game) {
     case GAME_STATE_PLAYING:
       switch (game->playing_state) {
         case PLAYING_TAKE_ORDER:
-          if (mouse_inside(game, 618, 480, 174, 40))
+          if (mouse_inside(game, 605, 495, 174, 40))
             game->playing_state = PLAYING_PREPARE_PIZZA;
           break;
 
@@ -182,19 +182,19 @@ static void handle_click(Game *game) {
             if (mouse_inside(game, 250, 485,  80, 50)) toggle_topping(game, 3);
             if (mouse_inside(game, 340, 485,  80, 50)) toggle_topping(game, 4);
             if (mouse_inside(game, 430, 485,  80, 50)) toggle_topping(game, 5);
-            if (mouse_inside(game, 618, 480, 174, 40)) game->pizza_in_oven = true;
+            if (mouse_inside(game, 605, 495, 174, 40)) game->pizza_in_oven = true;
           }
           else {
-            if (mouse_inside(game, 618, 480, 174, 40))
+            if (mouse_inside(game, 605, 495, 174, 40))
               game->playing_state = PLAYING_CUT;
           }
           break;
 
         case PLAYING_CUT:
-          if (mouse_inside(game, 215, 440, 110, 60)) game->selected_slices = 4;
-          if (mouse_inside(game, 345, 440, 110, 60)) game->selected_slices = 6;
-          if (mouse_inside(game, 475, 440, 110, 60)) game->selected_slices = 8;
-          if (mouse_inside(game, 618, 480, 174, 40))
+          if (mouse_inside(game, 115, 525, 110, 60)) game->selected_slices = 4;
+          if (mouse_inside(game, 245, 525, 110, 60)) game->selected_slices = 6;
+          if (mouse_inside(game, 375, 525, 110, 60)) game->selected_slices = 8;
+          if (mouse_inside(game, 605, 495, 174, 40))
             game->playing_state = PLAYING_SERVE;
           break;
 
