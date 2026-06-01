@@ -157,9 +157,10 @@ static void handle_click(Game *game) {
       if (mouse_inside(game, 285, 355, 230, 70)) {
         game->state         = GAME_STATE_PLAYING;
         game->playing_state = PLAYING_TAKE_ORDER;
-      } else if (mouse_inside(game, 285, 445, 230, 70)) {
-        /* OPCOES — no action */
-      } else if (mouse_inside(game, 285, 530, 230, 70)) {
+      } 
+      else if (mouse_inside(game, 285, 445, 230, 70)) {
+      } 
+      else if (mouse_inside(game, 285, 530, 230, 70)) {
         game->running = false;
       }
       break;
@@ -167,7 +168,7 @@ static void handle_click(Game *game) {
     case GAME_STATE_PLAYING:
       switch (game->playing_state) {
         case PLAYING_TAKE_ORDER:
-          if (mouse_inside(game, 285, 460, 230, 70))
+          if (mouse_inside(game, 618, 480, 174, 40))
             game->playing_state = PLAYING_PREPARE_PIZZA;
           break;
 
@@ -181,10 +182,10 @@ static void handle_click(Game *game) {
             if (mouse_inside(game, 250, 485,  80, 50)) toggle_topping(game, 3);
             if (mouse_inside(game, 340, 485,  80, 50)) toggle_topping(game, 4);
             if (mouse_inside(game, 430, 485,  80, 50)) toggle_topping(game, 5);
-            if (mouse_inside(game, 530, 445, 230, 65)) game->pizza_in_oven = true;
+            if (mouse_inside(game, 618, 480, 174, 40)) game->pizza_in_oven = true;
           }
           else {
-            if (mouse_inside(game, 285, 460, 230, 70))
+            if (mouse_inside(game, 618, 480, 174, 40))
               game->playing_state = PLAYING_CUT;
           }
           break;
@@ -193,7 +194,7 @@ static void handle_click(Game *game) {
           if (mouse_inside(game, 215, 440, 110, 60)) game->selected_slices = 4;
           if (mouse_inside(game, 345, 440, 110, 60)) game->selected_slices = 6;
           if (mouse_inside(game, 475, 440, 110, 60)) game->selected_slices = 8;
-          if (mouse_inside(game, 285, 520, 230, 50))
+          if (mouse_inside(game, 618, 480, 174, 40))
             game->playing_state = PLAYING_SERVE;
           break;
 
