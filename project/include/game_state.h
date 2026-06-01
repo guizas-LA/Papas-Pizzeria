@@ -22,7 +22,7 @@ typedef enum {
 
 typedef struct {
   int sauce;
-  int topping;
+  int toppings[3];
   int cook_seconds;
   int slices;
   char name[8];
@@ -39,7 +39,8 @@ typedef struct {
 
   Order order;
   int selected_sauce;
-  int selected_topping;
+  int selected_toppings[3];
+  int num_selected_toppings;
   int oven_ticks;
   bool pizza_in_oven;
   int selected_slices;

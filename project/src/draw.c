@@ -8,38 +8,56 @@
 #define SCREEN_W 800
 #define SCREEN_H 600
 
-static void draw_order_ticket(Game *game, bool show_ingredients, int x, int y) {
-  char s[2];
+static const char *SAUCE_NAMES[]   = { "MOLHO DE TOMATE", "MOLHO BRANCO" };
+static const char *TOPPING_NAMES[] = {"COGUMELO", "CHORICO", "FIAMBRE", "ANANAS", "QUEIJO", "AZEITONA"};
+/* cores temporárias   */
+static const uint32_t TOPPING_COLORS[] = {
+  0x8C6432, 
+  0xBE2814, 
+  0xE68282, 
+  0xF0C832, 
+  0xF5E164, 
+  0x284619,
+};
+
+static void draw_order_ticket(Game *game, int x, int y) {
+  char buf[12];
+  int i;
   draw_panel(x, y, 180, 390, rgb(115, 76, 43));
-  draw_string(x + 16, y + 12, game->order.name, 2, rgb(50, 70, 160));
-  if (show_ingredients) {
-    vg_draw_rectangle(x + 35, y + 35, 70 + game->order.sauce * 70,   25, rgb(190, 50,  40));
-    vg_draw_rectangle(x + 35, y + 75, 45 + game->order.topping * 35, 25, rgb(60,  140, 70));
-  }
-  s[0] = '0' + game->order.cook_seconds; s[1] = '\0';
-  draw_string(x + 35, y + 118, s, 3, rgb(220, 130, 35));
-  s[0] = '0' + game->order.slices; s[1] = '\0';
-  draw_string(x + 35, y + 163, s, 3, rgb(90, 120, 200));
+  draw_string(x + 12, y + 12, game->order.name, 2, rgb(0, 0, 0));
+  draw_string(x + 12, y + 42, SAUCE_NAMES[game->order.sauce], 1, rgb(0, 0, 0));
+  for (i = 0; i < 3; i++)
+    draw_string(x + 12, y + 58 + i * 16, TOPPING_NAMES[game->order.toppings[i]], 1, rgb(0, 0, 0));
+
+  buf[0] = '0' + game->order.cook_seconds;
+  buf[1] = ' '; buf[2] = 'S'; buf[3] = 'E'; buf[4] = 'G'; buf[5] = 'U';
+  buf[6] = 'N'; buf[7] = 'D'; buf[8] = 'O'; buf[9] = 'S'; buf[10] = '\0';
+  draw_string(x + 12, y + 115, buf, 2, rgb(0, 0, 0));
+
+  buf[0] = '0' + game->order.slices;
+  buf[1] = ' '; buf[2] = 'F'; buf[3] = 'A'; buf[4] = 'T'; buf[5] = 'I';
+  buf[6] = 'A'; buf[7] = 'S'; buf[8] = '\0';
+  draw_string(x + 12, y + 140, buf, 2, rgb(0, 0, 0));
 }
 
-static void draw_pizza(Game *game) {
-  uint32_t topping_color;
+static bool topping_selected(Game *game, int t) {
+  int i;
+  for (i = 0; i < game->num_selected_toppings; i++)
+    if (game->selected_toppings[i] == t) return true;
+  return false;
+}
 
+static const int PIZZA_DOT_X[] = {360, 430, 390, 450, 345, 415};
+static const int PIZZA_DOT_Y[] = {205, 205, 250, 265, 270, 285};
+
+static void draw_pizza(Game *game) {
+  int i;
   draw_circle(400, 235, 105, rgb(222, 175, 82));
   draw_circle(400, 235, 88,  game->selected_sauce == 1 ? rgb(245, 235, 180) : rgb(190, 45, 35));
-
-  if (game->selected_topping >= 0) {
-    topping_color = rgb(95, 45, 25);
-    switch (game->selected_topping) {
-      case 1: topping_color = rgb(40,  130, 60);  break;
-      case 2: topping_color = rgb(225, 225, 210); break;
-      default: break;
-    }
-    draw_circle(360, 205, 12, topping_color);
-    draw_circle(430, 205, 12, topping_color);
-    draw_circle(390, 250, 12, topping_color);
-    draw_circle(450, 265, 12, topping_color);
-    draw_circle(345, 270, 12, topping_color);
+  for (i = 0; i < game->num_selected_toppings; i++) {
+    uint32_t color = TOPPING_COLORS[game->selected_toppings[i]];
+    draw_circle(PIZZA_DOT_X[i * 2],     PIZZA_DOT_Y[i * 2],     12, color);
+    draw_circle(PIZZA_DOT_X[i * 2 + 1], PIZZA_DOT_Y[i * 2 + 1], 12, color);
   }
 }
 
@@ -104,22 +122,37 @@ void game_draw(Game *game) {
 
         case PLAYING_TAKE_ORDER:
           vg_draw_xpm(take_pixmap, take_img, 0, 0);
-          draw_order_ticket(game, false, 615, 80);
+          draw_order_ticket(game, 615, 80);
           draw_button(285, 460, 230, 70, false, rgb(235, 180, 70));
           draw_string(346, 488, "NEXT STEP", 2, rgb(80, 50, 20));
           break;
 
         case PLAYING_PREPARE_PIZZA:
           if (!game->pizza_in_oven) {
-            draw_order_ticket(game, true, 40, 80);
+            draw_order_ticket(game, 40, 80);
             draw_pizza(game);
-            draw_button(95,  420, 130, 70, game->selected_sauce   == 0, rgb(190, 45,  35));
-            draw_button(245, 420, 130, 70, game->selected_sauce   == 1, rgb(245, 235, 180));
-            draw_button(425, 420, 80,  70, game->selected_topping == 0, rgb(95,  45,  25));
-            draw_button(525, 420, 80,  70, game->selected_topping == 1, rgb(40,  130, 60));
-            draw_button(625, 420, 80,  70, game->selected_topping == 2, rgb(225, 225, 210));
-            draw_button(285, 460, 230, 70, false, rgb(235, 180, 70));
-            draw_string(346, 488, "NEXT STEP", 2, rgb(80, 50, 20));
+            /* sauces */
+            draw_button(250, 365, 120, 50, game->selected_sauce == 0, rgb(190, 45, 35));
+            draw_string(274, 383, "TOMATE", 2, rgb(255, 210, 200));
+            draw_button(380, 365, 120, 50, game->selected_sauce == 1, rgb(245, 235, 180));
+            draw_string(404, 383, "BRANCO", 2, rgb(80, 70, 40));
+            /* toppings row 1 */
+            draw_button(250, 425, 80, 50, topping_selected(game, 0), TOPPING_COLORS[0]);
+            draw_string(258, 446, "COGUMELO", 1, rgb(255, 240, 210));
+            draw_button(340, 425, 80, 50, topping_selected(game, 1), TOPPING_COLORS[1]);
+            draw_string(352, 446, "CHORICO", 1, rgb(255, 210, 200));
+            draw_button(430, 425, 80, 50, topping_selected(game, 2), TOPPING_COLORS[2]);
+            draw_string(442, 446, "FIAMBRE", 1, rgb(80, 40, 40));
+            /* toppings row 2 */
+            draw_button(250, 485, 80, 50, topping_selected(game, 3), TOPPING_COLORS[3]);
+            draw_string(264, 506, "ANANAS", 1, rgb(80, 60, 10));
+            draw_button(340, 485, 80, 50, topping_selected(game, 4), TOPPING_COLORS[4]);
+            draw_string(354, 506, "QUEIJO", 1, rgb(80, 70, 10));
+            draw_button(430, 485, 80, 50, topping_selected(game, 5), TOPPING_COLORS[5]);
+            draw_string(434, 506, "AZEITONA", 1, rgb(200, 230, 180));
+            /* next step */
+            draw_button(530, 445, 230, 65, false, rgb(235, 180, 70));
+            draw_string(591, 470, "NEXT STEP", 2, rgb(80, 50, 20));
           }
           else {
             oven_bar_width = game->oven_ticks * 430 / (game->order.cook_seconds * GAME_FPS * 2);

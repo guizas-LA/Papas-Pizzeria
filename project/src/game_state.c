@@ -13,6 +13,7 @@
 #define KEY_4_BREAK    0x85
 #define KEY_5_BREAK    0x86
 #define KEY_6_BREAK    0x87
+#define KEY_7_BREAK    0x88
 #define KEY_8_BREAK    0x89
 
 #define EXTENDED_PREFIX   0xE0
@@ -23,6 +24,17 @@
 
 static const char *CUSTOMER_NAMES[] = { "ANA", "BOUCA", "GUI", "BRUNO", "DAGA" };
 #define NUM_CUSTOMERS 5
+
+/* All C(6,3)=20 distinct topping combinations */
+static const int TOPPING_COMBOS[20][3] = {
+  {0,1,2}, {0,1,3}, {0,1,4}, {0,1,5},
+  {0,2,3}, {0,2,4}, {0,2,5},
+  {0,3,4}, {0,3,5}, {0,4,5},
+  {1,2,3}, {1,2,4}, {1,2,5},
+  {1,3,4}, {1,3,5}, {1,4,5},
+  {2,3,4}, {2,3,5}, {2,4,5},
+  {3,4,5}
+};
 
 static int abs_int(int value) {
   return value < 0 ? -value : value;
@@ -45,22 +57,37 @@ static char scancode_to_char(uint8_t sc) {
 
 static void make_order(Game *game) {
   int n = game->order_number;
+  int combo = n % 20;
   const char *name = CUSTOMER_NAMES[n % NUM_CUSTOMERS];
 
   game->order.sauce        = n % 2;
-  game->order.topping      = n % 3;
+  game->order.toppings[0]  = TOPPING_COMBOS[combo][0];
+  game->order.toppings[1]  = TOPPING_COMBOS[combo][1];
+  game->order.toppings[2]  = TOPPING_COMBOS[combo][2];
   game->order.cook_seconds = 5 + (n % 4);
   game->order.slices       = (n % 2 == 0) ? 6 : 8;
   strncpy(game->order.name, name, 7);
   game->order.name[7] = '\0';
 
-  game->selected_sauce   = -1;
-  game->selected_topping = -1;
-  game->oven_ticks       = 0;
-  game->pizza_in_oven    = false;
-  game->selected_slices  = 0;
-  game->typed_name[0]    = '\0';
-  game->typed_len        = 0;
+  game->selected_sauce          = -1;
+  game->num_selected_toppings   = 0;
+  game->oven_ticks              = 0;
+  game->pizza_in_oven           = false;
+  game->selected_slices         = 0;
+  game->typed_name[0]           = '\0';
+  game->typed_len               = 0;
+}
+
+static void toggle_topping(Game *game, int t) {
+  int i;
+  for (i = 0; i < game->num_selected_toppings; i++) {
+    if (game->selected_toppings[i] == t) {
+      game->selected_toppings[i] = game->selected_toppings[--game->num_selected_toppings];
+      return;
+    }
+  }
+  if (game->num_selected_toppings < 3)
+    game->selected_toppings[game->num_selected_toppings++] = t;
 }
 
 void game_init(Game *game) {
@@ -85,9 +112,23 @@ bool game_is_running(Game *game) {
 static void serve_pizza(Game *game) {
   int points = 100;
   int cooked_seconds = game->oven_ticks / GAME_FPS;
+  int i, j, matched = 0, extra = 0;
 
-  if (game->selected_sauce   != game->order.sauce)   points -= 25;
-  if (game->selected_topping != game->order.topping) points -= 25;
+  if (game->selected_sauce != game->order.sauce) points -= 25;
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < game->num_selected_toppings; j++) {
+      if (game->order.toppings[i] == game->selected_toppings[j]) { matched++; break; }
+    }
+  }
+  for (j = 0; j < game->num_selected_toppings; j++) {
+    bool found = false;
+    for (i = 0; i < 3; i++)
+      if (game->selected_toppings[j] == game->order.toppings[i]) { found = true; break; }
+    if (!found) extra++;
+  }
+  points -= (3 - matched) * 10;
+  points -= extra * 5;
 
   points -= abs_int(cooked_seconds - game->order.cook_seconds) * 10;
   points -= abs_int(game->selected_slices - game->order.slices) * 8;
@@ -132,15 +173,18 @@ static void handle_click(Game *game) {
 
         case PLAYING_PREPARE_PIZZA:
           if (!game->pizza_in_oven) {
-            if (mouse_inside(game, 95,  420, 130, 70)) game->selected_sauce   = 0;
-            if (mouse_inside(game, 245, 420, 130, 70)) game->selected_sauce   = 1;
-            if (mouse_inside(game, 425, 420, 80,  70)) game->selected_topping = 0;
-            if (mouse_inside(game, 525, 420, 80,  70)) game->selected_topping = 1;
-            if (mouse_inside(game, 625, 420, 80,  70)) game->selected_topping = 2;
-            if (mouse_inside(game, 285, 510, 230, 55)) game->pizza_in_oven    = true;
+            if (mouse_inside(game, 250, 365, 120, 50)) game->selected_sauce = 0;
+            if (mouse_inside(game, 380, 365, 120, 50)) game->selected_sauce = 1;
+            if (mouse_inside(game, 250, 425,  80, 50)) toggle_topping(game, 0);
+            if (mouse_inside(game, 340, 425,  80, 50)) toggle_topping(game, 1);
+            if (mouse_inside(game, 430, 425,  80, 50)) toggle_topping(game, 2);
+            if (mouse_inside(game, 250, 485,  80, 50)) toggle_topping(game, 3);
+            if (mouse_inside(game, 340, 485,  80, 50)) toggle_topping(game, 4);
+            if (mouse_inside(game, 430, 485,  80, 50)) toggle_topping(game, 5);
+            if (mouse_inside(game, 530, 445, 230, 65)) game->pizza_in_oven = true;
           }
           else {
-            if (mouse_inside(game, 285, 500, 230, 60))
+            if (mouse_inside(game, 285, 460, 230, 70))
               game->playing_state = PLAYING_CUT;
           }
           break;
@@ -216,12 +260,15 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
         case PLAYING_PREPARE_PIZZA:
           if (!game->pizza_in_oven) {
             switch (scancode) {
-              case KEY_1_BREAK: game->selected_sauce   = 0; break;
-              case KEY_2_BREAK: game->selected_sauce   = 1; break;
-              case KEY_3_BREAK: game->selected_topping = 0; break;
-              case KEY_4_BREAK: game->selected_topping = 1; break;
-              case KEY_5_BREAK: game->selected_topping = 2; break;
-              case ENTER_BREAK: game->pizza_in_oven    = true; break;
+              case KEY_1_BREAK: game->selected_sauce = 0;       break;
+              case KEY_2_BREAK: game->selected_sauce = 1;       break;
+              case KEY_3_BREAK: toggle_topping(game, 0);        break;
+              case KEY_4_BREAK: toggle_topping(game, 1);        break;
+              case KEY_5_BREAK: toggle_topping(game, 2);        break;
+              case KEY_6_BREAK: toggle_topping(game, 3);        break;
+              case KEY_7_BREAK: toggle_topping(game, 4);        break;
+              case KEY_8_BREAK: toggle_topping(game, 5);        break;
+              case ENTER_BREAK: game->pizza_in_oven = true;     break;
               default: break;
             }
           }
@@ -261,10 +308,10 @@ void game_handle_mouse_packet(Game *game, struct packet *packet) {
   game->mouse_x += packet->delta_x;
   game->mouse_y -= packet->delta_y;
 
-  if (game->mouse_x < 0)        game->mouse_x = 0;
-  if (game->mouse_y < 0)        game->mouse_y = 0;
-  if (game->mouse_x >= SCREEN_W) game->mouse_x = SCREEN_W - 1;
-  if (game->mouse_y >= SCREEN_H) game->mouse_y = SCREEN_H - 1;
+  if (game->mouse_x < 7)            game->mouse_x = 7;
+  if (game->mouse_y < 7)            game->mouse_y = 7;
+  if (game->mouse_x >= SCREEN_W - 7) game->mouse_x = SCREEN_W - 8;
+  if (game->mouse_y >= SCREEN_H - 7) game->mouse_y = SCREEN_H - 8;
 
   if (packet->lb) game->mouse_left_click = true;
 }
