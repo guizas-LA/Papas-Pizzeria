@@ -135,7 +135,8 @@ int drawMouseCursorSprite(int x, int y) {
 }
 
 int drawOrderTicketSprite(int x, int y, int width, int height) {
-  return drawSpriteScaled(orderTicketSprite, x, y, width, height);
+  Sprite *ticket = orderTicketSprite;
+  return drawSpriteScaled(ticket, x, y, width, height);
 }
 
 int loadSprites(void) {
