@@ -11,6 +11,7 @@
 #include "graphics.h"
 #include "interrupts.h"
 #include "mouse.h"
+#include "sprites.h"
 
 #define EN_DATA_REPORT 0xF4
 
@@ -40,6 +41,11 @@ int game_loop(int argc, char *argv[]) {
   }
 
   if (timer_set_frequency(0, GAME_FPS) != 0) {
+    cleanup_game_devices();
+    return 1;
+  }
+
+  if (loadSprites() != 0) {
     cleanup_game_devices();
     return 1;
   }
@@ -91,5 +97,6 @@ int game_loop(int argc, char *argv[]) {
     }
   }
 
+  unloadSprites();
   return cleanup_game_devices();
 }

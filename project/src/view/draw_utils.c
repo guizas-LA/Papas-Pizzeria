@@ -1,5 +1,6 @@
 #include "draw_utils.h"
 #include "graphics.h"
+#include "sprites.h"
 
 static const uint8_t FONT_DATA[][7] = {
   /* A:0  */ {0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11},
@@ -102,8 +103,10 @@ void draw_panel(int x, int y, int w, int h, uint32_t color) {
 }
 
 void draw_button(int x, int y, int w, int h, bool selected, uint32_t color) {
-  vg_draw_rectangle(x, y, w, h, selected ? rgb(48, 120, 70) : rgb(80, 80, 80));
-  vg_draw_rectangle(x + 4, y + 4, w - 8, h - 8, color);
+  if (drawButtonSprite(x, y, w, h, selected, color) != 0) {
+    vg_draw_rectangle(x, y, w, h, selected ? rgb(48, 120, 70) : rgb(80, 80, 80));
+    vg_draw_rectangle(x + 4, y + 4, w - 8, h - 8, color);
+  }
 }
 
 void draw_number(int x, int y, int value, uint32_t color) {
@@ -129,4 +132,3 @@ void draw_number(int x, int y, int value, uint32_t color) {
     value /= 10;
   }
 }
-

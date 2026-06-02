@@ -2,6 +2,7 @@
 #include "draw_elements.h"
 #include "draw_utils.h"
 #include "graphics.h"
+#include "sprites.h"
 #include "menu.xpm"
 #include "take.xpm"
 #include "prepare.xpm"
@@ -18,6 +19,8 @@ void game_draw(Game *game) {
   static uint8_t *cook_pixmap    = NULL; static xpm_image_t cook_img;
   static uint8_t *cut_pixmap     = NULL; static xpm_image_t cut_img;
   int oven_bar_width;
+  int oven_target_ticks;
+  int remaining_seconds;
   int name_x, name_len;
 
   if (menu_pixmap    == NULL) menu_pixmap    = xpm_load((xpm_map_t) papas_pizzeria_bg,   XPM_8_8_8, &menu_img);
@@ -95,16 +98,21 @@ void game_draw(Game *game) {
             
           }
           else {
-            oven_bar_width = game->oven_ticks * 420 / (game->order.cook_seconds * GAME_FPS * 2);
+            oven_target_ticks = game->order.cook_seconds * GAME_FPS;
+            oven_bar_width = game->oven_ticks * 420 / oven_target_ticks;
             if (oven_bar_width > 420) oven_bar_width = 420;
+            remaining_seconds = (oven_target_ticks - game->oven_ticks + GAME_FPS - 1) / GAME_FPS;
+            if (remaining_seconds < 0) remaining_seconds = 0;
 
             vg_draw_xpm(cook_pixmap, cook_img, 0, 0);
             draw_order_ticket(game, 602, 40);
-            draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
-            draw_button_label(605, 495, 174, 40, "STOP", 2, rgb(30, 60, 30));
+            draw_button(605, 495, 174, 40, remaining_seconds == 0, rgb(90, 160, 90));
+            draw_button_label(605, 495, 174, 40, remaining_seconds == 0 ? "STOP" : "WAIT", 2, rgb(30, 60, 30));
 
             vg_draw_rectangle(85, 45, 420, 22, rgb(60, 60, 60));
             vg_draw_rectangle(85, 45, oven_bar_width, 22, rgb(235, 180, 70));
+            draw_string(85, 76, "TEMPO", 2, rgb(255, 240, 160));
+            draw_number(165, 70, remaining_seconds, rgb(255, 240, 160));
 
             draw_pizza(game, 300, 320, 150);
           }
@@ -145,7 +153,9 @@ void game_draw(Game *game) {
       break;
   }
 
-  vg_draw_rectangle(game->mouse_x - 7, game->mouse_y - 1, 15, 3, rgb(20, 20, 20));
-  vg_draw_rectangle(game->mouse_x - 1, game->mouse_y - 7, 3, 15, rgb(20, 20, 20));
+  if (drawMouseCursorSprite(game->mouse_x, game->mouse_y) != 0) {
+    vg_draw_rectangle(game->mouse_x - 7, game->mouse_y - 1, 15, 3, rgb(20, 20, 20));
+    vg_draw_rectangle(game->mouse_x - 1, game->mouse_y - 7, 3, 15, rgb(20, 20, 20));
+  }
   vg_swap_buffer();
 }

@@ -25,7 +25,6 @@
 static const char *CUSTOMER_NAMES[] = { "ANA", "BOUCA", "GUI", "BRUNO", "DAGA" };
 #define NUM_CUSTOMERS 5
 
-/* All C(6,3)=20 distinct topping combinations */
 static const int TOPPING_COMBOS[20][3] = {
   {0,1,2}, {0,1,3}, {0,1,4}, {0,1,5},
   {0,2,3}, {0,2,4}, {0,2,5},
@@ -88,6 +87,19 @@ static void toggle_topping(Game *game, int t) {
   }
   if (game->num_selected_toppings < 3)
     game->selected_toppings[game->num_selected_toppings++] = t;
+}
+
+static int oven_target_ticks(Game *game) {
+  return game->order.cook_seconds * GAME_FPS;
+}
+
+static bool oven_ready(Game *game) {
+  return game->oven_ticks >= oven_target_ticks(game);
+}
+
+static void start_oven(Game *game) {
+  game->oven_ticks = 0;
+  game->pizza_in_oven = true;
 }
 
 void game_init(Game *game) {
@@ -182,10 +194,10 @@ static void handle_click(Game *game) {
             if (mouse_inside(game, 250, 485,  80, 50)) toggle_topping(game, 3);
             if (mouse_inside(game, 340, 485,  80, 50)) toggle_topping(game, 4);
             if (mouse_inside(game, 430, 485,  80, 50)) toggle_topping(game, 5);
-            if (mouse_inside(game, 605, 495, 174, 40)) game->pizza_in_oven = true;
+            if (mouse_inside(game, 605, 495, 174, 40)) start_oven(game);
           }
           else {
-            if (mouse_inside(game, 605, 495, 174, 40))
+            if (oven_ready(game) && mouse_inside(game, 605, 495, 174, 40))
               game->playing_state = PLAYING_CUT;
           }
           break;
@@ -269,11 +281,11 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
               case KEY_6_BREAK: toggle_topping(game, 3);        break;
               case KEY_7_BREAK: toggle_topping(game, 4);        break;
               case KEY_8_BREAK: toggle_topping(game, 5);        break;
-              case ENTER_BREAK: game->pizza_in_oven = true;     break;
+              case ENTER_BREAK: start_oven(game);               break;
               default: break;
             }
           }
-          else if (scancode == ENTER_BREAK) {
+          else if (scancode == ENTER_BREAK && oven_ready(game)) {
             game->playing_state = PLAYING_CUT;
           }
           break;
