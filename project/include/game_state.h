@@ -17,7 +17,8 @@ typedef enum {
   PLAYING_TAKE_ORDER,
   PLAYING_PREPARE_PIZZA,
   PLAYING_CUT,
-  PLAYING_SERVE
+  PLAYING_SERVE,
+  PLAYING_DELIVERED
 } PlayingState;
 
 typedef struct {
@@ -47,6 +48,7 @@ typedef struct {
 
   char typed_name[8];
   int typed_len;
+  char delivery_time_str[9]; /* "HH:MM:SS\0" */
 
   int mouse_x;
   int mouse_y;

@@ -82,5 +82,6 @@ void draw_state_label(PlayingState state) {
     case PLAYING_PREPARE_PIZZA: draw_string(706, 18, "PREPARE", 2, color); break;
     case PLAYING_CUT:           draw_string(754, 18, "CUT",     2, color); break;
     case PLAYING_SERVE:         draw_string(730, 18, "SERVE",   2, color); break;
+    case PLAYING_DELIVERED:     draw_string(706, 18, "DELIVER", 2, color); break;
   }
 }

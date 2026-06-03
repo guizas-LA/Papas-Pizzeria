@@ -1,4 +1,5 @@
 #include "game_state.h"
+#include "rtc.h"
 #include <string.h>
 
 #define SCREEN_W 800
@@ -156,6 +157,26 @@ static void serve_pizza(Game *game) {
   game->playing_state = PLAYING_TAKE_ORDER;
 }
 
+static void try_deliver(Game *game) {
+  rtc_time_t t;
+  if (strcmp(game->typed_name, game->order.name) != 0) {
+    game->typed_name[0] = '\0';
+    game->typed_len = 0;
+    return;
+  }
+  rtc_read_time(&t);
+  game->delivery_time_str[0] = (char)('0' + t.hour / 10);
+  game->delivery_time_str[1] = (char)('0' + t.hour % 10);
+  game->delivery_time_str[2] = ':';
+  game->delivery_time_str[3] = (char)('0' + t.min / 10);
+  game->delivery_time_str[4] = (char)('0' + t.min % 10);
+  game->delivery_time_str[5] = ':';
+  game->delivery_time_str[6] = (char)('0' + t.sec / 10);
+  game->delivery_time_str[7] = (char)('0' + t.sec % 10);
+  game->delivery_time_str[8] = '\0';
+  game->playing_state = PLAYING_DELIVERED;
+}
+
 static bool mouse_inside(Game *game, int x, int y, int w, int h) {
   return game->mouse_x >= x && game->mouse_x < x + w &&
          game->mouse_y >= y && game->mouse_y < y + h;
@@ -212,7 +233,10 @@ static void handle_click(Game *game) {
 
         case PLAYING_SERVE:
           if (mouse_inside(game, 285, 460, 230, 60))
-            serve_pizza(game);
+            try_deliver(game);
+          break;
+
+        case PLAYING_DELIVERED:
           break;
       }
       break;
@@ -309,9 +333,13 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
           if (scancode == BACKSPACE_MAKE && game->typed_len > 0) {
             game->typed_name[--game->typed_len] = '\0';
           }
-          if (scancode == ENTER_BREAK) serve_pizza(game);
+          if (scancode == ENTER_BREAK) try_deliver(game);
           break;
         }
+
+        case PLAYING_DELIVERED:
+          if (scancode == ENTER_BREAK) serve_pizza(game);
+          break;
       }
       break;
   }

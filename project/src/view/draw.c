@@ -149,6 +149,17 @@ void game_draw(Game *game) {
           draw_button(285, 460, 230, 60, false, rgb(90, 160, 90));
           draw_button_label(285, 460, 230, 60, "DELIVER", 2, rgb(30, 60, 30));
           break;
+
+        case PLAYING_DELIVERED:
+          /* painel central */
+          draw_panel(150, 200, 500, 200, rgb(55, 100, 55));
+          /* "PIZZA ENTREGUE AS" — 17 chars * 12px = 204px, centrado em 800 */
+          draw_string(298, 232, "PIZZA ENTREGUE AS", 2, rgb(255, 255, 220));
+          /* hora HH:MM:SS — 8 chars * 18px = 144px, centrado em 800 */
+          draw_string(328, 272, game->delivery_time_str, 3, rgb(255, 240, 100));
+          /* instrução — 11 chars * 12px = 132px, centrado em 800 */
+          draw_string(334, 348, "PRIMA ENTER", 2, rgb(200, 230, 200));
+          break;
       }
       break;
   }
