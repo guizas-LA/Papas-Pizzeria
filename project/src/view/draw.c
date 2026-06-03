@@ -26,7 +26,7 @@ void game_draw(Game *game) {
   if (menu_pixmap    == NULL) menu_pixmap    = xpm_load((xpm_map_t) papas_pizzeria_bg,   XPM_8_8_8, &menu_img);
   if (take_pixmap    == NULL) take_pixmap    = xpm_load((xpm_map_t) papas_takeorder_xpm, XPM_8_8_8, &take_img);
   if (prepare_pixmap == NULL) prepare_pixmap = xpm_load((xpm_map_t) pizza_prepare_xpm,   XPM_8_8_8, &prepare_img);
-  if (cook_pixmap    == NULL) cook_pixmap    = xpm_load((xpm_map_t) pizza_cook_xpm,      XPM_8_8_8, &cook_img);
+  if (cook_pixmap    == NULL) cook_pixmap    = xpm_load((xpm_map_t) cook_xpm,            XPM_8_8_8, &cook_img);
   if (cut_pixmap     == NULL) cut_pixmap     = xpm_load((xpm_map_t) pizza_cut_xpm,       XPM_8_8_8, &cut_img);
 
   vg_clear_buffer(rgb(215, 220, 205));

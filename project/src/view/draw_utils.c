@@ -39,6 +39,7 @@ static const uint8_t FONT_DATA[][7] = {
   /* 8:33 */ {0x0E, 0x11, 0x11, 0x0E, 0x11, 0x11, 0x0E},
   /* 9:34 */ {0x0E, 0x11, 0x11, 0x0F, 0x01, 0x01, 0x0E},
   /* ?:35 */ {0x0E, 0x11, 0x01, 0x06, 0x04, 0x00, 0x04},
+  /* W:36 */ {0x11, 0x11, 0x11, 0x15, 0x1B, 0x1B, 0x0A},
 };
 
 static int char_to_font_idx(char c) {
@@ -50,7 +51,7 @@ static int char_to_font_idx(char c) {
     case 'M': return 12; case 'N': return 13; case 'O': return 14;
     case 'P': return 15; case 'Q': return 16; case 'R': return 17;
     case 'S': return 18; case 'T': return 19; case 'U': return 20;
-    case 'V': return 21; case 'X': return 22; case 'Y': return 23;
+    case 'V': return 21; case 'W': return 36; case 'X': return 22; case 'Y': return 23;
     case 'Z': return 24;
     case '0': return 25; case '1': return 26; case '2': return 27;
     case '3': return 28; case '4': return 29; case '5': return 30;
