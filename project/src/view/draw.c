@@ -8,6 +8,7 @@
 #include "prepare.xpm"
 #include "cook.xpm"
 #include "cut.xpm"
+#include "deliver.xpm"
 
 #define SCREEN_W 800
 #define SCREEN_H 600
@@ -17,7 +18,8 @@ void game_draw(Game *game) {
   static uint8_t *take_pixmap    = NULL; static xpm_image_t take_img;
   static uint8_t *prepare_pixmap = NULL; static xpm_image_t prepare_img;
   static uint8_t *cook_pixmap    = NULL; static xpm_image_t cook_img;
-  static uint8_t *cut_pixmap     = NULL; static xpm_image_t cut_img;
+  static uint8_t *cut_pixmap      = NULL; static xpm_image_t cut_img;
+  static uint8_t *deliver_pixmap  = NULL; static xpm_image_t deliver_img;
   int oven_bar_width;
   int oven_target_ticks;
   int remaining_seconds;
@@ -28,6 +30,7 @@ void game_draw(Game *game) {
   if (prepare_pixmap == NULL) prepare_pixmap = xpm_load((xpm_map_t) pizza_prepare_xpm,   XPM_8_8_8, &prepare_img);
   if (cook_pixmap    == NULL) cook_pixmap    = xpm_load((xpm_map_t) cook_xpm,            XPM_8_8_8, &cook_img);
   if (cut_pixmap     == NULL) cut_pixmap     = xpm_load((xpm_map_t) pizza_cut_xpm,       XPM_8_8_8, &cut_img);
+  if (deliver_pixmap == NULL) deliver_pixmap = xpm_load((xpm_map_t) pizza_delivery_xpm,  XPM_8_8_8, &deliver_img);
 
   vg_clear_buffer(rgb(215, 220, 205));
 
@@ -134,31 +137,28 @@ void game_draw(Game *game) {
           break;
 
         case PLAYING_SERVE:
-          draw_panel(270, 90, 260, 160, rgb(115, 76, 43));
+          vg_draw_xpm(deliver_pixmap, deliver_img, 0, 0);
+          
           name_len = (int)strlen(game->order.name);
           name_x   = 400 - (name_len * 24 - 4) / 2;
-
-          vg_draw_rectangle(200, 300, 400, 70, rgb(70, 70, 70));
-          vg_draw_rectangle(206, 306, 388, 58, rgb(245, 240, 215));
-          draw_string(216, 318, game->typed_name, 3, rgb(30, 30, 30));
+          draw_string(613, 165, game->typed_name, 3, rgb(30, 30, 30));
 
           if ((game->tick / 30) % 2 == 0) {
             vg_draw_rectangle(216 + game->typed_len * 18, 320, 2, 28, rgb(30, 30, 30));
           }
 
-          draw_button(285, 460, 230, 60, false, rgb(90, 160, 90));
-          draw_button_label(285, 460, 230, 60, "DELIVER", 2, rgb(30, 60, 30));
+          draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
+          draw_button_label(605, 495, 174, 40, "DELIVER", 2, rgb(30, 60, 30));
           break;
 
         case PLAYING_DELIVERED:
-          /* painel central */
-          draw_panel(150, 200, 500, 200, rgb(55, 100, 55));
-          /* "PIZZA ENTREGUE AS" — 17 chars * 12px = 204px, centrado em 800 */
-          draw_string(298, 232, "PIZZA ENTREGUE AS", 2, rgb(255, 255, 220));
-          /* hora HH:MM:SS — 8 chars * 18px = 144px, centrado em 800 */
-          draw_string(328, 272, game->delivery_time_str, 3, rgb(255, 240, 100));
-          /* instrução — 11 chars * 12px = 132px, centrado em 800 */
-          draw_string(334, 348, "PRIMA ENTER", 2, rgb(200, 230, 200));
+          vg_draw_xpm(deliver_pixmap, deliver_img, 0, 0);
+          
+          draw_string(298, 232, "PIZZA ENTREGUE AS", 2, rgb(30, 30, 30));
+          draw_string(328, 272, game->delivery_time_str, 3, rgb(30, 30, 30));
+          
+          draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
+          draw_button_label(605, 495, 174, 40, "PRESS ENTER", 2, rgb(30, 60, 30));
           break;
       }
       break;
