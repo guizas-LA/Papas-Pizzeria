@@ -4,6 +4,7 @@
 #include <lcom/lcf.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "rtc.h"
 
 #define GAME_VIDEO_MODE 0x115
 #define GAME_FPS 60
@@ -53,6 +54,9 @@ typedef struct {
   bool mouse_left_click;
 
   int menu_option;
+
+  RtcTime current_time;
+  RtcTime order_time;
 } Game;
 
 void game_init(Game *game);

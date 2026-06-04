@@ -1,6 +1,7 @@
 #include "draw_elements.h"
 #include "draw_utils.h"
 #include "sprites.h"
+#include "rtc.h"
 #include <string.h>
 
 static const char *SAUCE_NAMES[]   = { "MOLHO DE TOMATE", "MOLHO BRANCO" };
@@ -17,8 +18,15 @@ const uint32_t TOPPING_COLORS[] = {
 static const int DOT_DX[] = {-40,  30, -10,  50, -55, 15};
 static const int DOT_DY[] = {-30, -30,  15,  30,  35, 50};
 
+static void fmt2(char *s, int pos, uint8_t v) {
+  s[pos]     = (char)('0' + v / 10);
+  s[pos + 1] = (char)('0' + v % 10);
+}
+
 void draw_order_ticket(Game *game, int x, int y) {
   char buf[12];
+  char tbuf[9]; /* HH:MM:SS\0 */
+  char dbuf[9]; /* DD/MM/AA\0 */
   int i;
 
   if (drawOrderTicketSprite(x, y, 180, 434) != 0) {
@@ -47,6 +55,19 @@ void draw_order_ticket(Game *game, int x, int y) {
   buf[6] = 'A'; buf[7] = 'S'; buf[8] = '\0';
   draw_string(x + 18, y + 354, "CORTE", 1, rgb(141, 90, 46));
   draw_string(x + 18, y + 372, buf, 2, rgb(30, 22, 16));
+
+  /* Order timestamp from RTC */
+  fmt2(tbuf, 0, game->order_time.hour); tbuf[2] = ':';
+  fmt2(tbuf, 3, game->order_time.min);  tbuf[5] = ':';
+  fmt2(tbuf, 6, game->order_time.sec);  tbuf[8] = '\0';
+  fmt2(dbuf, 0, game->order_time.day);  dbuf[2] = '/';
+  fmt2(dbuf, 3, game->order_time.month); dbuf[5] = '/';
+  fmt2(dbuf, 6, (uint8_t)(game->order_time.year % 100)); dbuf[8] = '\0';
+
+  vg_draw_rectangle(x + 14, y + 393, 152, 1, rgb(141, 90, 46));
+  draw_string(x + 18, y + 398, "HORA PEDIDO", 1, rgb(141, 90, 46));
+  draw_string(x + 18, y + 410, tbuf, 2, rgb(30, 22, 16));
+  draw_string(x + 30, y + 426, dbuf, 1, rgb(94, 59, 34));
 }
 
 void draw_button_label(int bx, int by, int bw, int bh, const char *s, int scale, uint32_t color) {

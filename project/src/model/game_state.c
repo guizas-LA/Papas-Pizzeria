@@ -1,4 +1,5 @@
 #include "game_state.h"
+#include "rtc.h"
 #include <string.h>
 
 #define SCREEN_W 800
@@ -75,6 +76,7 @@ static void make_order(Game *game) {
   game->selected_slices         = 0;
   game->typed_name[0]           = '\0';
   game->typed_len               = 0;
+  game->order_time              = game->current_time;
 }
 
 static void toggle_topping(Game *game, int t) {
@@ -114,6 +116,12 @@ void game_init(Game *game) {
   game->mouse_y       = SCREEN_H / 2;
   game->mouse_left_click = false;
   game->menu_option   = 0;
+  game->current_time.hour  = 0;
+  game->current_time.min   = 0;
+  game->current_time.sec   = 0;
+  game->current_time.day   = 1;
+  game->current_time.month = 1;
+  game->current_time.year  = 2026;
   make_order(game);
 }
 
@@ -331,6 +339,21 @@ void game_handle_mouse_packet(Game *game, struct packet *packet) {
 
 void game_update(Game *game) {
   game->tick++;
+
+  /* Track time locally via tick (RTC synced once at startup in game_loop) */
+  if (game->tick % GAME_FPS == 0) {
+    game->current_time.sec++;
+    if (game->current_time.sec >= 60) {
+      game->current_time.sec = 0;
+      game->current_time.min++;
+      if (game->current_time.min >= 60) {
+        game->current_time.min = 0;
+        game->current_time.hour++;
+        if (game->current_time.hour >= 24)
+          game->current_time.hour = 0;
+      }
+    }
+  }
 
   switch (game->state) {
     case GAME_STATE_PLAYING:

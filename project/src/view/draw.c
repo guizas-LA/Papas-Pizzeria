@@ -3,11 +3,29 @@
 #include "draw_utils.h"
 #include "graphics.h"
 #include "sprites.h"
+#include "rtc.h"
 #include "menu.xpm"
 #include "take.xpm"
 #include "prepare.xpm"
 #include "cook.xpm"
 #include "cut.xpm"
+
+static void fmt2_draw(char *s, int pos, uint8_t v) {
+  s[pos]     = (char)('0' + v / 10);
+  s[pos + 1] = (char)('0' + v % 10);
+}
+
+static void build_time_str(char *tbuf, const RtcTime *t) {
+  fmt2_draw(tbuf, 0, t->hour); tbuf[2] = ':';
+  fmt2_draw(tbuf, 3, t->min);  tbuf[5] = ':';
+  fmt2_draw(tbuf, 6, t->sec);  tbuf[8] = '\0';
+}
+
+static void build_date_str(char *dbuf, const RtcTime *t) {
+  fmt2_draw(dbuf, 0, t->day);  dbuf[2] = '/';
+  fmt2_draw(dbuf, 3, t->month); dbuf[5] = '/';
+  fmt2_draw(dbuf, 6, (uint8_t)(t->year % 100)); dbuf[8] = '\0';
+}
 
 #define SCREEN_W 800
 #define SCREEN_H 600
@@ -18,6 +36,7 @@ void game_draw(Game *game) {
   static uint8_t *prepare_pixmap = NULL; static xpm_image_t prepare_img;
   static uint8_t *cook_pixmap    = NULL; static xpm_image_t cook_img;
   static uint8_t *cut_pixmap     = NULL; static xpm_image_t cut_img;
+  char tbuf[9], dbuf[9];
   int oven_bar_width;
   int oven_target_ticks;
   int remaining_seconds;
@@ -52,16 +71,20 @@ void game_draw(Game *game) {
 
       if (game->last_points > 0)
         draw_number(370, 490, game->last_points, rgb(180, 230, 130));
+
+      /* Clock overlay — top-right dark panel */
+      build_time_str(tbuf, &game->current_time);
+      build_date_str(dbuf, &game->current_time);
+      vg_draw_rectangle(620, 6, 174, 48, rgb(25, 15, 10));
+      draw_string(628, 13, tbuf, 2, rgb(255, 220, 80));
+      draw_string(640, 33, dbuf, 2, rgb(200, 180, 80));
       break;
     }
 
     case GAME_STATE_PLAYING:
-      vg_draw_rectangle(0, 0, SCREEN_W, 60, rgb(165, 45, 40));
       vg_draw_rectangle(0, 560, SCREEN_W, 40, rgb(75, 55, 45));
-      draw_string(10, 18, "SCORE", 2, rgb(255, 240, 160));
-      draw_number(78, 12, game->score, rgb(255, 240, 160));
-      draw_state_label(game->playing_state);
 
+      /* --- Background + state content (drawn first) --- */
       switch (game->playing_state) {
 
         case PLAYING_TAKE_ORDER:
@@ -77,7 +100,6 @@ void game_draw(Game *game) {
             draw_order_ticket(game, 602, 40);
             draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
             draw_button_label(605, 495, 174, 40, "MAKE PIZZA", 2, rgb(30, 60, 30));
-
             draw_pizza(game, 285, 265, 150);
             draw_button(250, 365, 120, 50, game->selected_sauce == 0, rgb(190, 45, 35));
             draw_button_label(250, 365, 120, 50, "TOMATE", 2, rgb(255, 210, 200));
@@ -95,7 +117,6 @@ void game_draw(Game *game) {
             draw_button_label(340, 485, 80, 50, "QUEIJO", 1, rgb(80, 70, 10));
             draw_button(430, 485, 80, 50, topping_selected(game, 5), TOPPING_COLORS[5]);
             draw_button_label(430, 485, 80, 50, "AZEITONA", 1, rgb(200, 230, 180));
-            
           }
           else {
             oven_target_ticks = game->order.cook_seconds * GAME_FPS;
@@ -108,13 +129,9 @@ void game_draw(Game *game) {
             draw_order_ticket(game, 602, 40);
             draw_button(605, 495, 174, 40, remaining_seconds == 0, rgb(90, 160, 90));
             draw_button_label(605, 495, 174, 40, remaining_seconds == 0 ? "STOP" : "WAIT", 2, rgb(30, 60, 30));
-
-            vg_draw_rectangle(85, 45, 420, 22, rgb(60, 60, 60));
-            vg_draw_rectangle(85, 45, oven_bar_width, 22, rgb(235, 180, 70));
+            draw_pizza(game, 300, 320, 150);
             draw_string(85, 76, "TEMPO", 2, rgb(255, 240, 160));
             draw_number(165, 70, remaining_seconds, rgb(255, 240, 160));
-
-            draw_pizza(game, 300, 320, 150);
           }
           break;
 
@@ -123,7 +140,6 @@ void game_draw(Game *game) {
           draw_order_ticket(game, 602, 40);
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
           draw_button_label(605, 495, 174, 40, "TAKE ORDER", 2, rgb(30, 60, 30));
-          
           draw_pizza(game, 300, 320, 150);
           draw_button(115, 525, 110, 60, game->selected_slices == 4, rgb(235, 180, 70));
           draw_button_label(115, 525, 110, 60, "4", 3, rgb(80, 50, 20));
@@ -137,18 +153,28 @@ void game_draw(Game *game) {
           draw_panel(270, 90, 260, 160, rgb(115, 76, 43));
           name_len = (int)strlen(game->order.name);
           name_x   = 400 - (name_len * 24 - 4) / 2;
-
           vg_draw_rectangle(200, 300, 400, 70, rgb(70, 70, 70));
           vg_draw_rectangle(206, 306, 388, 58, rgb(245, 240, 215));
           draw_string(216, 318, game->typed_name, 3, rgb(30, 30, 30));
-
-          if ((game->tick / 30) % 2 == 0) {
+          if ((game->tick / 30) % 2 == 0)
             vg_draw_rectangle(216 + game->typed_len * 18, 320, 2, 28, rgb(30, 30, 30));
-          }
-
           draw_button(285, 460, 230, 60, false, rgb(90, 160, 90));
           draw_button_label(285, 460, 230, 60, "DELIVER", 2, rgb(30, 60, 30));
           break;
+      }
+
+      /* --- Top bar drawn LAST so it's never overwritten by XPM --- */
+      vg_draw_rectangle(0, 0, SCREEN_W, 60, rgb(165, 45, 40));
+      draw_string(10, 18, "SCORE", 2, rgb(255, 240, 160));
+      draw_number(78, 12, game->score, rgb(255, 240, 160));
+      draw_state_label(game->playing_state);
+      build_time_str(tbuf, &game->current_time);
+      draw_string(352, 22, tbuf, 2, rgb(255, 240, 160));
+
+      /* Oven bar overlaps the top bar zone: redraw on top of it */
+      if (game->playing_state == PLAYING_PREPARE_PIZZA && game->pizza_in_oven) {
+        vg_draw_rectangle(85, 45, 420, 22, rgb(60, 60, 60));
+        vg_draw_rectangle(85, 45, oven_bar_width, 22, rgb(235, 180, 70));
       }
       break;
   }
