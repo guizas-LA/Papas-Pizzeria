@@ -39,8 +39,13 @@ static const uint8_t FONT_DATA[][7] = {
   /* 8:33 */ {0x0E, 0x11, 0x11, 0x0E, 0x11, 0x11, 0x0E},
   /* 9:34 */ {0x0E, 0x11, 0x11, 0x0F, 0x01, 0x01, 0x0E},
   /* ?:35 */ {0x0E, 0x11, 0x01, 0x06, 0x04, 0x00, 0x04},
-  /* ::36 */ {0x00, 0x04, 0x04, 0x00, 0x04, 0x04, 0x00},
-  /* /:37 */ {0x01, 0x02, 0x02, 0x04, 0x08, 0x08, 0x10},
+  /* W:36 */ {0x11, 0x11, 0x11, 0x15, 0x1B, 0x1B, 0x0A},
+  /* ::37 */ {0x00, 0x06, 0x06, 0x00, 0x06, 0x06, 0x00},
+  /* Á:38 */ {0x02, 0x0E, 0x11, 0x1F, 0x11, 0x11, 0x11},
+  /* À:39 */ {0x08, 0x0E, 0x11, 0x1F, 0x11, 0x11, 0x11},
+  /* Ç:40 */ {0x0E, 0x11, 0x10, 0x10, 0x11, 0x0E, 0x06},
+  /* Ã:41 */ {0x0A, 0x0E, 0x11, 0x1F, 0x11, 0x11, 0x11},
+  /* Õ:42 */ {0x0A, 0x0E, 0x11, 0x11, 0x11, 0x11, 0x0E},
 };
 
 static int char_to_font_idx(char c) {
@@ -52,14 +57,13 @@ static int char_to_font_idx(char c) {
     case 'M': return 12; case 'N': return 13; case 'O': return 14;
     case 'P': return 15; case 'Q': return 16; case 'R': return 17;
     case 'S': return 18; case 'T': return 19; case 'U': return 20;
-    case 'V': return 21; case 'X': return 22; case 'Y': return 23;
-    case 'Z': return 24;
+    case 'V': return 21; case 'W': return 36; case 'X': return 22;
+    case 'Y': return 23; case 'Z': return 24;
     case '0': return 25; case '1': return 26; case '2': return 27;
     case '3': return 28; case '4': return 29; case '5': return 30;
     case '6': return 31; case '7': return 32; case '8': return 33;
     case '9': return 34;
-    case ':': return 36;
-    case '/': return 37;
+    case ':': return 37;
     default:  return 35;
   }
 }
@@ -84,10 +88,40 @@ void draw_char(int x, int y, char c, int scale, uint32_t color) {
 
 void draw_string(int x, int y, const char *s, int scale, uint32_t color) {
   int char_step = 6 * scale;
-  int i;
-  for (i = 0; s[i] != '\0'; i++) {
-    draw_char(x + i * char_step, y, s[i], scale, color);
+  int i = 0;
+  int pos = 0;
+  while (s[i] != '\0') {
+    unsigned char c = (unsigned char)s[i];
+    int z;
+    if (c == ' ') { i++; pos += char_step; continue; }
+    if (c == 0xC3 && s[i + 1] != '\0') {
+      unsigned char n = (unsigned char)s[i + 1];
+      if      (n == 0x81) z = 38;
+      else if (n == 0x80) z = 39;
+      else if (n == 0x87) z = 40;
+      else if (n == 0x83) z = 41;
+      else if (n == 0x95) z = 42;
+      else z = 35;
+      i += 2;
+    } else {
+      z = char_to_font_idx((char)c);
+      i++;
+    }
+    {
+      const uint8_t *rows = FONT_DATA[z];
+      int row, col;
+      for (row = 0; row < 7; row++)
+        for (col = 0; col < 5; col++)
+          if (rows[row] & (1 << (4 - col)))
+            vg_draw_rectangle(x + pos + col * scale, y + row * scale, scale, scale, color);
+    }
+    pos += char_step;
   }
+}
+
+void draw_panel(int x, int y, int w, int h, uint32_t color) {
+  vg_draw_rectangle(x, y, w, h, color);
+  vg_draw_rectangle(x + 4, y + 4, w - 8, h - 8, rgb(252, 238, 202));
 }
 
 void draw_circle(int cx, int cy, int radius, uint32_t color) {
@@ -101,38 +135,9 @@ void draw_circle(int cx, int cy, int radius, uint32_t color) {
   }
 }
 
-void draw_panel(int x, int y, int w, int h, uint32_t color) {
-  vg_draw_rectangle(x, y, w, h, color);
-  vg_draw_rectangle(x + 4, y + 4, w - 8, h - 8, rgb(252, 238, 202));
-}
-
 void draw_button(int x, int y, int w, int h, bool selected, uint32_t color) {
   if (drawButtonSprite(x, y, w, h, selected, color) != 0) {
     vg_draw_rectangle(x, y, w, h, selected ? rgb(48, 120, 70) : rgb(80, 80, 80));
     vg_draw_rectangle(x + 4, y + 4, w - 8, h - 8, color);
-  }
-}
-
-void draw_number(int x, int y, int value, uint32_t color) {
-  int width = 0;
-  int temp  = value;
-  int i;
-
-  if (temp == 0) width = 1;
-  while (temp > 0) { width++; temp /= 10; }
-
-  for (i = width - 1; i >= 0; i--) {
-    int digit = value % 10;
-    int px    = x + i * 22;
-
-    if (digit != 1 && digit != 4)                              vg_draw_rectangle(px,      y,      16, 4,  color);
-    if (digit != 1 && digit != 2 && digit != 3 && digit != 7) vg_draw_rectangle(px,      y,      4,  18, color);
-    if (digit != 5 && digit != 6)                              vg_draw_rectangle(px + 12, y,      4,  18, color);
-    if (digit != 0 && digit != 1 && digit != 7)               vg_draw_rectangle(px,      y + 17, 16, 4,  color);
-    if (digit == 0 || digit == 2 || digit == 6 || digit == 8) vg_draw_rectangle(px,      y + 20, 4,  18, color);
-    if (digit != 2)                                            vg_draw_rectangle(px + 12, y + 20, 4,  18, color);
-    if (digit != 1 && digit != 4 && digit != 7)               vg_draw_rectangle(px,      y + 36, 16, 4,  color);
-
-    value /= 10;
   }
 }
