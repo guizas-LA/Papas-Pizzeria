@@ -22,11 +22,13 @@ LDADD += -L../lab3 -lkbc
 LDADD += -L../lab4 -lmouse
 LDADD += -L../lab5 -lgraphics
 
-all: libs
-libs:
-	${MAKE} -C ../lab2 lib
-	${MAKE} -C ../lab3 lib
-	${MAKE} -C ../lab4 lib
-	${MAKE} -C ../lab5 lib
+all: labs
+
+labs:
+	@if [ -f ../lab1/Makefile ]; then ${MAKE} -C ../lab1; else echo "Skipping lab1: no Makefile"; fi
+	${MAKE} -C ../lab2
+	${MAKE} -C ../lab3
+	${MAKE} -C ../lab4
+	${MAKE} -C ../lab5
 
 .include <minix.lcom.mk>
