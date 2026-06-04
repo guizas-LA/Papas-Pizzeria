@@ -97,16 +97,33 @@ bool topping_selected(Game *game, int t) {
   return game->active_topping == t;
 }
 
+static uint32_t darken(uint32_t color, int pct) {
+  uint8_t r = (uint8_t)(((color >> 16) & 0xFF) * (100 - pct) / 100);
+  uint8_t g = (uint8_t)(((color >>  8) & 0xFF) * (100 - pct) / 100);
+  uint8_t b = (uint8_t)(((color      ) & 0xFF) * (100 - pct) / 100);
+  return rgb(r, g, b);
+}
+
 void draw_pizza(Game *game, int cx, int cy, int r) {
-  int i, dot_r;
-  draw_circle(cx, cy, r, rgb(168, 128, 55));
-  if (game->selected_sauce >= 0)
-    draw_circle(cx, cy, r * 88 / 105,
-                game->selected_sauce == 1 ? rgb(245, 235, 180) : rgb(190, 45, 35));
+  int i, dot_r, darken_pct, overtime;
+  uint32_t sauce_col;
+
+  darken_pct = 0;
+  if (game->pizza_in_oven) {
+    overtime = game->oven_ticks - game->order.cook_seconds * 60;
+    if      (overtime > 5 * 60) darken_pct = 65;
+    else if (overtime > 3 * 60) darken_pct = 35;
+  }
+
+  draw_circle(cx, cy, r, darken(rgb(168, 128, 55), darken_pct));
+  if (game->selected_sauce >= 0) {
+    sauce_col = game->selected_sauce == 1 ? rgb(245, 235, 180) : rgb(190, 45, 35);
+    draw_circle(cx, cy, r * 88 / 105, darken(sauce_col, darken_pct));
+  }
   dot_r = r * 12 / 105;
   if (dot_r < 1) dot_r = 1;
   for (i = 0; i < game->num_placements; i++) {
-    uint32_t color = TOPPING_COLORS[game->topping_placements[i].type];
+    uint32_t color = darken(TOPPING_COLORS[game->topping_placements[i].type], darken_pct);
     draw_circle(cx + game->topping_placements[i].dx,
                 cy + game->topping_placements[i].dy,
                 dot_r, color);
