@@ -105,7 +105,7 @@ static uint32_t darken(uint32_t color, int pct) {
 }
 
 void draw_pizza(Game *game, int cx, int cy, int r) {
-  int i, dot_r, darken_pct, overtime;
+  int i, dot_r, darken_pct, overtime, has_cheese;
   uint32_t sauce_col;
 
   darken_pct = 0;
@@ -121,10 +121,20 @@ void draw_pizza(Game *game, int cx, int cy, int r) {
     sauce_col = game->selected_sauce == 1 ? rgb(245, 235, 180) : rgb(190, 45, 35);
     draw_circle(cx, cy, r * 88 / 105, darken(sauce_col, darken_pct));
   }
+
+  has_cheese = 0;
+  for (i = 0; i < game->num_placements; i++) {
+    if (game->topping_placements[i].type == 4) { has_cheese = 1; break; }
+  }
+  if (has_cheese)
+    draw_circle(cx, cy, r * 83 / 105, darken(TOPPING_COLORS[4], darken_pct));
+
   dot_r = r * 12 / 105;
   if (dot_r < 1) dot_r = 1;
   for (i = 0; i < game->num_placements; i++) {
-    uint32_t color = darken(TOPPING_COLORS[game->topping_placements[i].type], darken_pct);
+    uint32_t color;
+    if (game->topping_placements[i].type == 4) continue;
+    color = darken(TOPPING_COLORS[game->topping_placements[i].type], darken_pct);
     draw_circle(cx + game->topping_placements[i].dx,
                 cy + game->topping_placements[i].dy,
                 dot_r, color);
