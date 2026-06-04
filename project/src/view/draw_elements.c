@@ -1,5 +1,6 @@
 #include "draw_elements.h"
 #include "draw_utils.h"
+#include "fast_draw.h"
 #include "sprites.h"
 #include <string.h>
 
@@ -18,7 +19,7 @@ static void draw_diamond(int cx, int cy, int size, uint32_t color) {
   int i;
   for (i = -size; i <= size; i++) {
     int half = size - (i < 0 ? -i : i);
-    vg_draw_rectangle(cx - half, cy + i, 2 * half + 1, 1, color);
+    fast_rect(cx - half, cy + i, 2 * half + 1, 1, color);
   }
 }
 
@@ -30,7 +31,7 @@ static void draw_delivered_ticket(Game *game, int x, int y) {
 
   draw_string(x + 52, y + 22, "PEDIDO:", 2, rgb(94, 59, 34));
 
-  vg_draw_rectangle(x + 14, y + 54, 152, 1, rgb(141, 90, 46));
+  fast_rect(x + 14, y + 54, 152, 1, rgb(141, 90, 46));
 
   draw_diamond(x + 64,  y + 72, 8, stars >= 1 ? gold : grey);
   draw_diamond(x + 89,  y + 72, 8, stars >= 2 ? gold : grey);
@@ -39,10 +40,10 @@ static void draw_delivered_ticket(Game *game, int x, int y) {
   draw_string(x + 18, y + 100, "PONTOS", 1, rgb(141, 90, 46));
 
   draw_char(x + 70, y + 114, (char)('0' + sc / 10), 3, rgb(30, 22, 16));
-  vg_draw_rectangle(x + 89, y + 132, 3, 3, rgb(30, 22, 16));
+  fast_rect(x + 89, y + 132, 3, 3, rgb(30, 22, 16));
   draw_char(x + 93, y + 114, (char)('0' + sc % 10), 3, rgb(30, 22, 16));
 
-  vg_draw_rectangle(x + 14, y + 150, 152, 1, rgb(141, 90, 46));
+  fast_rect(x + 14, y + 150, 152, 1, rgb(141, 90, 46));
 
   draw_string(x + 18, y + 160, "INICIO", 1, rgb(141, 90, 46));
   draw_string(x + 18, y + 174, game->order_time_str, 2, rgb(30, 22, 16));
@@ -155,7 +156,7 @@ static void draw_line_seg(int x0, int y0, int x1, int y1, uint32_t color) {
   ay = dy < 0 ? -dy : dy;
   err = ax - ay;
   for (;;) {
-    vg_draw_rectangle(x0 - 1, y0 - 1, 3, 3, color);
+    fast_rect(x0 - 1, y0 - 1, 3, 3, color);
     if (x0 == x1 && y0 == y1) break;
     e2 = 2 * err;
     if (e2 > -ay) { err -= ay; x0 += sx; }

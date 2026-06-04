@@ -1,5 +1,5 @@
 #include "draw_utils.h"
-#include "graphics.h"
+#include "fast_draw.h"
 #include "sprites.h"
 
 static const uint8_t FONT_DATA[][7] = {
@@ -80,7 +80,7 @@ void draw_char(int x, int y, char c, int scale, uint32_t color) {
   for (row = 0; row < 7; row++) {
     for (col = 0; col < 5; col++) {
       if (rows[row] & (1 << (4 - col))) {
-        vg_draw_rectangle(x + col * scale, y + row * scale, scale, scale, color);
+        fast_rect(x + col * scale, y + row * scale, scale, scale, color);
       }
     }
   }
@@ -113,31 +113,24 @@ void draw_string(int x, int y, const char *s, int scale, uint32_t color) {
       for (row = 0; row < 7; row++)
         for (col = 0; col < 5; col++)
           if (rows[row] & (1 << (4 - col)))
-            vg_draw_rectangle(x + pos + col * scale, y + row * scale, scale, scale, color);
+            fast_rect(x + pos + col * scale, y + row * scale, scale, scale, color);
     }
     pos += char_step;
   }
 }
 
 void draw_panel(int x, int y, int w, int h, uint32_t color) {
-  vg_draw_rectangle(x, y, w, h, color);
-  vg_draw_rectangle(x + 4, y + 4, w - 8, h - 8, rgb(252, 238, 202));
+  fast_rect(x, y, w, h, color);
+  fast_rect(x + 4, y + 4, w - 8, h - 8, rgb(252, 238, 202));
 }
 
 void draw_circle(int cx, int cy, int radius, uint32_t color) {
-  int y, x;
-  for (y = -radius; y <= radius; y++) {
-    for (x = -radius; x <= radius; x++) {
-      if (x * x + y * y <= radius * radius) {
-        vg_draw_pixel(cx + x, cy + y, color);
-      }
-    }
-  }
+  fast_circle(cx, cy, radius, color);
 }
 
 void draw_button(int x, int y, int w, int h, bool selected, uint32_t color) {
   if (drawButtonSprite(x, y, w, h, selected, color) != 0) {
-    vg_draw_rectangle(x, y, w, h, selected ? rgb(48, 120, 70) : rgb(80, 80, 80));
-    vg_draw_rectangle(x + 4, y + 4, w - 8, h - 8, color);
+    fast_rect(x, y, w, h, selected ? rgb(48, 120, 70) : rgb(80, 80, 80));
+    fast_rect(x + 4, y + 4, w - 8, h - 8, color);
   }
 }

@@ -14,6 +14,7 @@
 #include "interrupts.h"
 #include "mouse.h"
 #include "sprites.h"
+#include "fast_draw.h"
 
 #define EN_DATA_REPORT 0xF4
 
@@ -30,6 +31,7 @@ int game_loop(int argc, char *argv[]) {
 
   if (map_video_memory(GAME_VIDEO_MODE) != 0) return 1;
   if (set_graphics_mode(GAME_VIDEO_MODE) != 0) return 1;
+  if (fast_draw_init(GAME_VIDEO_MODE) != 0) { vg_exit(); return 1; }
 
   if (subscribe_all(&timer_irq, &kbd_irq, &mouse_irq) != 0) {
     vg_exit();
