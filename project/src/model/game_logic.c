@@ -19,7 +19,6 @@ static const int TOPPING_COMBOS[20][3] = {
   {3,4,5}
 };
 
-/* Simple hash to mix order_number for less repetitive patterns */
 static int mix_n(int n) {
   unsigned int u = (unsigned int)n;
   u ^= (u << 13);
@@ -36,10 +35,9 @@ void make_order(Game *game) {
   int n     = game->order_number;
   int h     = mix_n(n);
   int combo = h % 20;
-  int difficulty = n / 3;  /* increases every 3 orders */
+  int difficulty = n / 3;
   int name_pool, cook_base, cook_range;
 
-  /* Gradually introduce harder (longer) names */
   name_pool = 5 + difficulty;
   if (name_pool > NUM_CUSTOMERS) name_pool = NUM_CUSTOMERS;
 
@@ -48,14 +46,12 @@ void make_order(Game *game) {
   game->order.toppings[1]  = TOPPING_COMBOS[combo][1];
   game->order.toppings[2]  = TOPPING_COMBOS[combo][2];
 
-  /* Cook time: starts easy (5-8s), gradually wider range (4-12s) */
-  cook_base  = 5 - (difficulty > 1 ? 1 : 0);  /* min 4 */
+  cook_base  = 5 - (difficulty > 1 ? 1 : 0);
   if (cook_base < 4) cook_base = 4;
   cook_range = 4 + difficulty;
-  if (cook_range > 9) cook_range = 9;  /* max range: 4-12s */
+  if (cook_range > 9) cook_range = 9;
   game->order.cook_seconds = cook_base + (h / 20) % cook_range;
 
-  /* Slices: start with 6, introduce 4 and 8 gradually */
   if (n < 3)
     game->order.slices = 6;
   else if (n < 8)
@@ -150,7 +146,7 @@ void try_deliver(Game *game) {
 
   {
     int cs = game->oven_ticks / GAME_FPS;
-    int penalty = 4 + game->order_number / 8;  /* gradual: 4 → max 8 */
+    int penalty = 4 + game->order_number / 8;
     if (penalty > 8) penalty = 8;
     off = cs - game->order.cook_seconds;
     if (off < 0) off = -off;
@@ -176,11 +172,10 @@ void try_deliver(Game *game) {
   game->last_score_10 = total;
 
   {
-    /* Star thresholds get slightly harder over time */
     int star3 = 42 + game->order_number / 5;
     int star2 = 30 + game->order_number / 6;
     int star1 = 15 + game->order_number / 8;
-    if (star3 > 48) star3 = 48;  /* max score is 50, keep achievable */
+    if (star3 > 48) star3 = 48;
     if (star2 > 38) star2 = 38;
     if (star1 > 22) star1 = 22;
 

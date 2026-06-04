@@ -38,7 +38,7 @@ int game_loop(int argc, char *argv[]) {
     return 1;
   }
 
-  mouse_write_cmd(0xE8);  /* set resolution: 8 counts/mm */
+  mouse_write_cmd(0xE8);
   mouse_write_cmd(0x03);
 
   if (mouse_write_cmd(EN_DATA_REPORT) != 0) {

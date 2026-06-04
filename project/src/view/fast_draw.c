@@ -5,9 +5,9 @@
 #define SCREEN_W 800
 #define SCREEN_H 600
 
-static uint8_t *fb_buf  = NULL;   /* our own back-buffer          */
-static uint8_t *vram    = NULL;   /* mapped video RAM              */
-static unsigned bpp     = 3;      /* bytes per pixel (24-bit mode) */
+static uint8_t *fb_buf  = NULL;
+static uint8_t *vram    = NULL;
+static unsigned bpp     = 3;
 static unsigned fb_size = 0;
 
 int fast_draw_init(uint16_t mode) {
@@ -21,7 +21,6 @@ int fast_draw_init(uint16_t mode) {
   vram_size = vmi.XResolution * vmi.YResolution * bpp;
   fb_size   = vram_size;
 
-  /* Map VRAM — the kernel allows multiple mappings */
   mr.mr_base  = (phys_bytes) vmi.PhysBasePtr;
   mr.mr_limit = mr.mr_base + vram_size;
   sys_privctl(SELF, SYS_PRIV_ADD_MEM, &mr);
@@ -43,11 +42,9 @@ void fast_clear(uint32_t color) {
 
   memcpy(pixel, &color, bpp);
 
-  /* Fill the first scanline */
   for (x = 0; x < SCREEN_W; x++)
     memcpy(&fb_buf[x * bpp], pixel, bpp);
 
-  /* Copy first scanline to all others */
   {
     unsigned int row_bytes = SCREEN_W * bpp;
     unsigned int y;
@@ -63,7 +60,6 @@ void fast_rect(int x, int y, int w, int h, uint32_t color) {
 
   if (fb_buf == NULL || w <= 0 || h <= 0) return;
 
-  /* Clip */
   x0 = x < 0 ? 0 : x;
   y0 = y < 0 ? 0 : y;
   x1 = (x + w > SCREEN_W) ? SCREEN_W : x + w;
@@ -73,11 +69,9 @@ void fast_rect(int x, int y, int w, int h, uint32_t color) {
   memcpy(pixel, &color, bpp);
   row_bytes = SCREEN_W * bpp;
 
-  /* Fill first row */
   for (col = x0; col < x1; col++)
     memcpy(&fb_buf[y0 * row_bytes + col * bpp], pixel, bpp);
 
-  /* Copy first row to remaining rows */
   {
     unsigned int src_off = y0 * row_bytes + x0 * bpp;
     unsigned int span    = (unsigned int)(x1 - x0) * bpp;
