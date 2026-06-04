@@ -58,6 +58,24 @@ void serve_pizza(Game *game) {
   game->playing_state = PLAYING_TAKE_ORDER;
 }
 
+void toggle_topping(Game *game, int t) {
+  game->active_topping = (game->active_topping == t) ? -1 : t;
+}
+
+void record_order_start(Game *game) {
+  RtcTime t;
+  rtc_read_time(&t);
+  game->order_time_str[0] = (char)('0' + t.hour / 10);
+  game->order_time_str[1] = (char)('0' + t.hour % 10);
+  game->order_time_str[2] = ':';
+  game->order_time_str[3] = (char)('0' + t.min / 10);
+  game->order_time_str[4] = (char)('0' + t.min % 10);
+  game->order_time_str[5] = ':';
+  game->order_time_str[6] = (char)('0' + t.sec / 10);
+  game->order_time_str[7] = (char)('0' + t.sec % 10);
+  game->order_time_str[8] = '\0';
+}
+
 void try_deliver(Game *game) {
   RtcTime t;
   bool placed[6];

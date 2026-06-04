@@ -4,6 +4,11 @@
 #define SCREEN_W 800
 #define SCREEN_H 600
 
+#define PIZZA_CX 285
+#define PIZZA_CY 265
+#define PIZZA_R  150
+#define SAUCE_R  (PIZZA_R * 88 / 105)
+
 
 static bool mouse_inside(Game *game, int x, int y, int w, int h) {
   return game->mouse_x >= x && game->mouse_x < x + w && game->mouse_y >= y && game->mouse_y < y + h;
@@ -29,12 +34,28 @@ void handle_click(Game *game) {
     case GAME_STATE_PLAYING:
       switch (game->playing_state) {
         case PLAYING_TAKE_ORDER:
-          if (mouse_inside(game, 605, 495, 174, 40))
+          if (mouse_inside(game, 605, 495, 174, 40)) {
+            record_order_start(game);
             game->playing_state = PLAYING_PREPARE_PIZZA;
+          }
           break;
 
         case PLAYING_PREPARE_PIZZA:
           if (!game->pizza_in_oven) {
+            /* Click inside sauce circle → place active topping */
+            {
+              int dx = game->mouse_x - PIZZA_CX;
+              int dy = game->mouse_y - PIZZA_CY;
+              if (dx*dx + dy*dy <= SAUCE_R*SAUCE_R &&
+                  game->active_topping >= 0 &&
+                  game->num_placements < MAX_PLACEMENTS) {
+                game->topping_placements[game->num_placements].type = game->active_topping;
+                game->topping_placements[game->num_placements].dx   = dx;
+                game->topping_placements[game->num_placements].dy   = dy;
+                game->num_placements++;
+                break;
+              }
+            }
             if (mouse_inside(game,  10, 480, 120, 50)) game->selected_sauce = 0;
             if (mouse_inside(game,  10, 540, 120, 50)) game->selected_sauce = 1;
             if (mouse_inside(game, 195, 480,  80, 50)) toggle_topping(game, 0);

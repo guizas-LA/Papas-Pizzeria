@@ -68,7 +68,10 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
     case GAME_STATE_PLAYING:
       switch (game->playing_state) {
         case PLAYING_TAKE_ORDER:
-          if (scancode == ENTER_BREAK) game->playing_state = PLAYING_PREPARE_PIZZA;
+          if (scancode == ENTER_BREAK) {
+            record_order_start(game);
+            game->playing_state = PLAYING_PREPARE_PIZZA;
+          }
           break;
 
         case PLAYING_PREPARE_PIZZA:

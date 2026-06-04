@@ -54,6 +54,30 @@ void game_draw(Game *game) {
       draw_button(510, 530, 230, 70, game->menu_option == 2 || hover == 2, rgb(50,  50,  50));
       draw_button_label(510, 530, 230, 70, "SAIR",   3, rgb(200, 200, 200));
 
+      {
+        char tstr[9], dstr[14];
+        RtcTime *t = &game->current_time;
+        int di = 0;
+        tstr[0] = (char)('0' + t->hour/10); tstr[1] = (char)('0' + t->hour%10);
+        tstr[2] = ':';
+        tstr[3] = (char)('0' + t->min/10);  tstr[4] = (char)('0' + t->min%10);
+        tstr[5] = ':';
+        tstr[6] = (char)('0' + t->sec/10);  tstr[7] = (char)('0' + t->sec%10);
+        tstr[8] = '\0';
+        dstr[di++] = (char)('0' + t->day/10);   dstr[di++] = (char)('0' + t->day%10);
+        dstr[di++] = ' ';
+        dstr[di++] = (char)('0' + t->month/10); dstr[di++] = (char)('0' + t->month%10);
+        dstr[di++] = ' ';
+        dstr[di++] = (char)('0' + (t->year/1000)%10);
+        dstr[di++] = (char)('0' + (t->year/100)%10);
+        dstr[di++] = (char)('0' + (t->year/10)%10);
+        dstr[di++] = (char)('0' + t->year%10);
+        dstr[di]   = '\0';
+        draw_panel(560, 10, 230, 80, rgb(115, 76, 43));
+        draw_string(572, 26, tstr, 2, rgb(30, 22, 16));
+        draw_string(572, 58, dstr, 2, rgb(30, 22, 16));
+      }
+
       break;
     }
 
@@ -108,11 +132,12 @@ void game_draw(Game *game) {
             draw_button(605, 495, 174, 40, remaining_seconds == 0, rgb(90, 160, 90));
             draw_button_label(605, 495, 174, 40, remaining_seconds == 0 ? "PARAR" : "ESPERA", 2, rgb(30, 60, 30));
 
-            vg_draw_rectangle(85, 45, 420, 22, rgb(60, 60, 60));
-            vg_draw_rectangle(85, 45, oven_bar_width, 22, rgb(235, 180, 70));
-            draw_string(85, 76, "TEMPO", 2, rgb(255, 240, 160));
+            vg_draw_rectangle(75, 38, 440, 50, rgb(40, 25, 10));
+            vg_draw_rectangle(85, 45, 420, 18, rgb(60, 60, 60));
+            vg_draw_rectangle(85, 45, oven_bar_width, 18, rgb(235, 180, 70));
+            draw_string(85, 70, "TEMPO:", 2, rgb(255, 240, 160));
             { char sec_buf[2] = { (char)('0' + remaining_seconds), '\0' };
-              draw_string(165, 70, sec_buf, 2, rgb(255, 240, 160)); }
+              draw_string(175, 70, sec_buf, 2, rgb(255, 240, 160)); }
 
             draw_pizza(game, 300, 320, 150);
           }
@@ -136,14 +161,14 @@ void game_draw(Game *game) {
 
         case PLAYING_SERVE:
           vg_draw_xpm(deliver_pixmap, deliver_img, 0, 0);
-          draw_order_ticket(game, 602, 40);
+          draw_panel(602, 40, 180, 434, rgb(115, 76, 43));
+          draw_string(615, 180, "NOME:", 2, rgb(94, 59, 34));
+          draw_string(615, 205, game->typed_name, 3, rgb(30, 30, 30));
 
           name_len = (int)strlen(game->order.name);
           (void)name_len;
-          draw_string(615, 190, game->typed_name, 3, rgb(30, 30, 30));
-
           if ((game->tick / 30) % 2 == 0) {
-            vg_draw_rectangle(616 + game->typed_len * 18, 190, 2, 28, rgb(30, 30, 30));
+            vg_draw_rectangle(616 + game->typed_len * 18, 205, 2, 28, rgb(30, 30, 30));
           }
 
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
@@ -153,7 +178,6 @@ void game_draw(Game *game) {
         case PLAYING_DELIVERED:
           vg_draw_xpm(deliver_pixmap, deliver_img, 0, 0);
           draw_order_ticket(game, 602, 40);
-          draw_pizza(game, 300, 320, 150);
 
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
           draw_button_label(605, 495, 174, 40, "CONTINUAR", 2, rgb(30, 60, 30));
