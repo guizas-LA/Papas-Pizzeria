@@ -95,13 +95,8 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
           break;
 
         case PLAYING_CUT:
-          switch (scancode) {
-            case KEY_4_BREAK: game->selected_slices = 4;              break;
-            case KEY_6_BREAK: game->selected_slices = 6;              break;
-            case KEY_8_BREAK: game->selected_slices = 8;              break;
-            case ENTER_BREAK: game->playing_state = PLAYING_SERVE;    break;
-            default: break;
-          }
+          if (scancode == ENTER_BREAK && game->num_cut_lines >= game->order.slices / 2)
+            game->playing_state = PLAYING_SERVE;
           break;
 
         case PLAYING_SERVE: {
