@@ -113,6 +113,7 @@ void draw_pizza(Game *game, int cx, int cy, int r) {
     overtime = game->oven_ticks - game->order.cook_seconds * 60;
     if      (overtime > 5 * 60) darken_pct = 65;
     else if (overtime > 3 * 60) darken_pct = 35;
+    else if (overtime >= 0)     darken_pct = 15;
   }
 
   draw_circle(cx, cy, r, darken(rgb(168, 128, 55), darken_pct));
@@ -139,7 +140,7 @@ static void draw_line_seg(int x0, int y0, int x1, int y1, uint32_t color) {
   ay = dy < 0 ? -dy : dy;
   err = ax - ay;
   for (;;) {
-    vg_draw_rectangle(x0, y0, 2, 2, color);
+    vg_draw_rectangle(x0 - 1, y0 - 1, 3, 3, color);
     if (x0 == x1 && y0 == y1) break;
     e2 = 2 * err;
     if (e2 > -ay) { err -= ay; x0 += sx; }

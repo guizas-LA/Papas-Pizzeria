@@ -19,6 +19,7 @@ void game_init(Game *game) {
   game->last_stars       = 0;
   game->delivery_time_str[0] = '\0';
   game->order_time_str[0]    = '\0';
+  rtc_read_time(&game->current_time);
   make_order(game);
 }
 
