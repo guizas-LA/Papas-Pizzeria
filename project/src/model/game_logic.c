@@ -38,7 +38,8 @@ void make_order(Game *game) {
   game->num_placements  = 0;
   game->oven_ticks      = 0;
   game->pizza_in_oven   = false;
-  game->selected_slices = 0;
+  game->cut_selected  = -1;
+  game->num_cut_lines = 0;
   game->typed_name[0]   = '\0';
   game->typed_len       = 0;
 }
@@ -118,11 +119,17 @@ void try_deliver(Game *game) {
   }
 
   {
-    off = game->selected_slices - game->order.slices;
-    if (off < 0) off = -off;
-    off /= 2;
-    slice_s = 6 - off * 3;
-    if (slice_s < 0) slice_s = 0;
+    int N = game->order.slices;
+    int req_cuts = N / 2;
+    int correct = 0, a, b;
+    for (i = 0; i < game->num_cut_lines; i++) {
+      a = game->cut_lines[i].a;
+      b = game->cut_lines[i].b;
+      if (b == (a + req_cuts) % N || a == (b + req_cuts) % N)
+        correct++;
+    }
+    slice_s = (req_cuts > 0) ? (correct * 6 / req_cuts) : 6;
+    if (slice_s > 6) slice_s = 6;
   }
 
   total = sauce_s + top_s + oven_s + slice_s;

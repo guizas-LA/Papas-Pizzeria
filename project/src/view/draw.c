@@ -146,17 +146,10 @@ void game_draw(Game *game) {
         case PLAYING_CUT:
           vg_draw_xpm(cut_pixmap, cut_img, 0, 0);
           draw_order_ticket(game, 602, 40);
-          draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
+          draw_button(605, 495, 174, 40, game->num_cut_lines >= game->order.slices / 2, rgb(90, 160, 90));
           draw_button_label(605, 495, 174, 40, "CORTAR", 2, rgb(30, 60, 30));
-
           draw_pizza(game, 300, 320, 150);
-
-          draw_button(115, 40, 110, 60, game->selected_slices == 4, rgb(235, 180, 70));
-          draw_button_label(115, 40, 110, 60, "4", 3, rgb(80, 50, 20));
-          draw_button(245, 40, 110, 60, game->selected_slices == 6, rgb(235, 180, 70));
-          draw_button_label(245, 40, 110, 60, "6", 3, rgb(80, 50, 20));
-          draw_button(375, 40, 110, 60, game->selected_slices == 8, rgb(235, 180, 70));
-          draw_button_label(375, 40, 110, 60, "8", 3, rgb(80, 50, 20));
+          draw_pizza_cuts(game, 300, 320, 150);
           break;
 
         case PLAYING_SERVE:

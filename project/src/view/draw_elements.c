@@ -129,3 +129,51 @@ void draw_pizza(Game *game, int cx, int cy, int r) {
                 dot_r, color);
   }
 }
+
+static void draw_line_seg(int x0, int y0, int x1, int y1, uint32_t color) {
+  int dx, dy, sx, sy, ax, ay, err, e2;
+  dx = x1 - x0; dy = y1 - y0;
+  sx = dx > 0 ? 1 : (dx < 0 ? -1 : 0);
+  sy = dy > 0 ? 1 : (dy < 0 ? -1 : 0);
+  ax = dx < 0 ? -dx : dx;
+  ay = dy < 0 ? -dy : dy;
+  err = ax - ay;
+  for (;;) {
+    vg_draw_rectangle(x0, y0, 2, 2, color);
+    if (x0 == x1 && y0 == y1) break;
+    e2 = 2 * err;
+    if (e2 > -ay) { err -= ay; x0 += sx; }
+    if (e2 <  ax) { err += ax; y0 += sy; }
+  }
+}
+
+static void cut_point_offset(int N, int i, int r, int *dx, int *dy) {
+  static const int S4[] = {    0, 1000,    0, -1000 };
+  static const int C4[] = { 1000,    0, -1000,    0 };
+  static const int S6[] = {    0,  866,  866,    0, -866, -866 };
+  static const int C6[] = { 1000,  500, -500, -1000, -500,  500 };
+  static const int S8[] = {    0,  707, 1000,  707,    0, -707, -1000, -707 };
+  static const int C8[] = { 1000,  707,    0, -707, -1000, -707,     0,  707 };
+  const int *S, *C;
+  if      (N == 4) { S = S4; C = C4; }
+  else if (N == 6) { S = S6; C = C6; }
+  else             { S = S8; C = C8; }
+  *dx =  r * S[i] / 1000;
+  *dy = -r * C[i] / 1000;
+}
+
+void draw_pizza_cuts(Game *game, int cx, int cy, int r) {
+  int N = game->order.slices;
+  int i, adx, ady, bdx, bdy, pdx, pdy, dot_r;
+  for (i = 0; i < game->num_cut_lines; i++) {
+    cut_point_offset(N, game->cut_lines[i].a, r, &adx, &ady);
+    cut_point_offset(N, game->cut_lines[i].b, r, &bdx, &bdy);
+    draw_line_seg(cx + adx, cy + ady, cx + bdx, cy + bdy, rgb(20, 20, 20));
+  }
+  for (i = 0; i < N; i++) {
+    cut_point_offset(N, i, r, &pdx, &pdy);
+    dot_r = (i == game->cut_selected) ? 10 : 7;
+    draw_circle(cx + pdx, cy + pdy, dot_r,
+                (i == game->cut_selected) ? rgb(255, 200, 0) : rgb(20, 20, 20));
+  }
+}

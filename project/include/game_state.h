@@ -9,6 +9,12 @@
 #define GAME_VIDEO_MODE 0x115
 #define GAME_FPS 60
 #define MAX_PLACEMENTS 15
+#define MAX_CUT_LINES  4
+
+typedef struct {
+  int a;
+  int b;
+} CutLine;
 
 typedef enum {
   GAME_STATE_MENU,
@@ -51,7 +57,9 @@ typedef struct {
   int num_placements;
   int oven_ticks;
   bool pizza_in_oven;
-  int selected_slices;
+  int cut_selected;
+  int num_cut_lines;
+  CutLine cut_lines[MAX_CUT_LINES];
 
   char typed_name[8];
   int typed_len;
