@@ -10,6 +10,5 @@ void draw_string(int x, int y, const char *s, int scale, uint32_t color);
 void draw_circle(int cx, int cy, int radius, uint32_t color);
 void draw_panel(int x, int y, int w, int h, uint32_t color);
 void draw_button(int x, int y, int w, int h, bool selected, uint32_t color);
-void draw_number(int x, int y, int value, uint32_t color);
 
 #endif

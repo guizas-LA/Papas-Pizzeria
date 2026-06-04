@@ -35,8 +35,7 @@ typedef struct {
   bool running;
   int tick;
   int order_number;
-  int score;
-  int last_points;
+  
 
   Order order;
   int selected_sauce;
@@ -48,7 +47,7 @@ typedef struct {
 
   char typed_name[8];
   int typed_len;
-  char delivery_time_str[9]; /* "HH:MM:SS\0" */
+  char delivery_time_str[9]; 
 
   int mouse_x;
   int mouse_y;
