@@ -20,38 +20,27 @@ static int oven_target_ticks(Game *game) {
 }
 
 void make_order(Game *game) {
-  int n = game->order_number;
+  int n     = game->order_number;
   int combo = n % 20;
   const char *name = CUSTOMER_NAMES[n % NUM_CUSTOMERS];
 
-  game->order.sauce = n % 2;
-  game->order.toppings[0] = TOPPING_COMBOS[combo][0];
-  game->order.toppings[1] = TOPPING_COMBOS[combo][1];
-  game->order.toppings[2] = TOPPING_COMBOS[combo][2];
+  game->order.sauce        = n % 2;
+  game->order.toppings[0]  = TOPPING_COMBOS[combo][0];
+  game->order.toppings[1]  = TOPPING_COMBOS[combo][1];
+  game->order.toppings[2]  = TOPPING_COMBOS[combo][2];
   game->order.cook_seconds = 5 + (n % 4);
-  game->order.slices = (n % 2 == 0) ? 6 : 8;
+  game->order.slices       = (n % 2 == 0) ? 6 : 8;
   strncpy(game->order.name, name, 7);
   game->order.name[7] = '\0';
 
-  game->selected_sauce = -1;
-  game->num_selected_toppings = 0;
-  game->oven_ticks = 0;
-  game->pizza_in_oven = false;
+  game->selected_sauce  = -1;
+  game->active_topping  = -1;
+  game->num_placements  = 0;
+  game->oven_ticks      = 0;
+  game->pizza_in_oven   = false;
   game->selected_slices = 0;
-  game->typed_name[0] = '\0';
-  game->typed_len = 0;
-}
-
-void toggle_topping(Game *game, int t) {
-  int i;
-  for (i = 0; i < game->num_selected_toppings; i++) {
-    if (game->selected_toppings[i] == t) {
-      game->selected_toppings[i] = game->selected_toppings[--game->num_selected_toppings];
-      return;
-    }
-  }
-  if (game->num_selected_toppings < 3)
-    game->selected_toppings[game->num_selected_toppings++] = t;
+  game->typed_name[0]   = '\0';
+  game->typed_len       = 0;
 }
 
 bool oven_ready(Game *game) {
@@ -70,12 +59,62 @@ void serve_pizza(Game *game) {
 }
 
 void try_deliver(Game *game) {
-  rtc_time_t t;
+  RtcTime t;
+  bool placed[6];
+  bool required[6];
+  int i, matched, extra, off;
+  int sauce_s, top_s, oven_s, slice_s, total;
+
   if (strcmp(game->typed_name, game->order.name) != 0) {
     game->typed_name[0] = '\0';
     game->typed_len     = 0;
     return;
   }
+
+  sauce_s = (game->selected_sauce == game->order.sauce) ? 12 : 0;
+
+  for (i = 0; i < 6; i++) { placed[i] = false; required[i] = false; }
+  for (i = 0; i < game->num_placements; i++)
+    placed[game->topping_placements[i].type] = true;
+  for (i = 0; i < 3; i++)
+    required[game->order.toppings[i]] = true;
+
+  matched = 0;
+  for (i = 0; i < 3; i++)
+    if (placed[game->order.toppings[i]]) matched++;
+  extra = 0;
+  for (i = 0; i < 6; i++)
+    if (placed[i] && !required[i]) extra++;
+
+  top_s = matched * 7;
+  if (top_s > 20) top_s = 20;
+  top_s -= extra * 3;
+  if (top_s < 0) top_s = 0;
+
+  {
+    int cs = game->oven_ticks / GAME_FPS;
+    off = cs - game->order.cook_seconds;
+    if (off < 0) off = -off;
+    oven_s = 12 - off * 4;
+    if (oven_s < 0) oven_s = 0;
+  }
+
+  {
+    off = game->selected_slices - game->order.slices;
+    if (off < 0) off = -off;
+    off /= 2;
+    slice_s = 6 - off * 3;
+    if (slice_s < 0) slice_s = 0;
+  }
+
+  total = sauce_s + top_s + oven_s + slice_s;
+  game->last_score_10 = total;
+
+  if (total >= 42)      game->last_stars = 3;
+  else if (total >= 30) game->last_stars = 2;
+  else if (total >= 15) game->last_stars = 1;
+  else                  game->last_stars = 0;
+
   rtc_read_time(&t);
   game->delivery_time_str[0] = (char)('0' + t.hour / 10);
   game->delivery_time_str[1] = (char)('0' + t.hour % 10);
@@ -86,5 +125,6 @@ void try_deliver(Game *game) {
   game->delivery_time_str[6] = (char)('0' + t.sec / 10);
   game->delivery_time_str[7] = (char)('0' + t.sec % 10);
   game->delivery_time_str[8] = '\0';
+
   game->playing_state = PLAYING_DELIVERED;
 }

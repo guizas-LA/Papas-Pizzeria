@@ -18,12 +18,12 @@ void game_draw(Game *game) {
   static uint8_t *take_pixmap    = NULL; static xpm_image_t take_img;
   static uint8_t *prepare_pixmap = NULL; static xpm_image_t prepare_img;
   static uint8_t *cook_pixmap    = NULL; static xpm_image_t cook_img;
-  static uint8_t *cut_pixmap      = NULL; static xpm_image_t cut_img;
-  static uint8_t *deliver_pixmap  = NULL; static xpm_image_t deliver_img;
+  static uint8_t *cut_pixmap     = NULL; static xpm_image_t cut_img;
+  static uint8_t *deliver_pixmap = NULL; static xpm_image_t deliver_img;
   int oven_bar_width;
   int oven_target_ticks;
   int remaining_seconds;
-  int name_x, name_len;
+  int name_len;
 
   if (menu_pixmap    == NULL) menu_pixmap    = xpm_load((xpm_map_t) papas_pizzeria_bg,   XPM_8_8_8, &menu_img);
   if (take_pixmap    == NULL) take_pixmap    = xpm_load((xpm_map_t) papas_takeorder_xpm, XPM_8_8_8, &take_img);
@@ -42,7 +42,7 @@ void game_draw(Game *game) {
 
       hover = -1;
       if (game->mouse_x >= 510 && game->mouse_x < 740) {
-        if (game->mouse_y >= 355 && game->mouse_y < 425) hover = 0;
+        if      (game->mouse_y >= 355 && game->mouse_y < 425) hover = 0;
         else if (game->mouse_y >= 445 && game->mouse_y < 515) hover = 1;
         else if (game->mouse_y >= 530 && game->mouse_y < 600) hover = 2;
       }
@@ -95,9 +95,8 @@ void game_draw(Game *game) {
             draw_button_label(285, 540, 80, 50, "QUEIJO", 1, rgb(80, 70, 10));
             draw_button(375, 540, 80, 50, topping_selected(game, 5), TOPPING_COLORS[5]);
             draw_button_label(375, 540, 80, 50, "AZEITONAS", 1, rgb(200, 230, 180));
-            
-          }
-          else {
+
+          } else {
             oven_target_ticks = game->order.cook_seconds * GAME_FPS;
             oven_bar_width = game->oven_ticks * 420 / oven_target_ticks;
             if (oven_bar_width > 420) oven_bar_width = 420;
@@ -124,7 +123,7 @@ void game_draw(Game *game) {
           draw_order_ticket(game, 602, 40);
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
           draw_button_label(605, 495, 174, 40, "CORTAR", 2, rgb(30, 60, 30));
-          
+
           draw_pizza(game, 300, 320, 150);
 
           draw_button(115, 40, 110, 60, game->selected_slices == 4, rgb(235, 180, 70));
@@ -137,9 +136,10 @@ void game_draw(Game *game) {
 
         case PLAYING_SERVE:
           vg_draw_xpm(deliver_pixmap, deliver_img, 0, 0);
-          
+          draw_order_ticket(game, 602, 40);
+
           name_len = (int)strlen(game->order.name);
-          name_x   = 400 - (name_len * 24 - 4) / 2;
+          (void)name_len;
           draw_string(615, 190, game->typed_name, 3, rgb(30, 30, 30));
 
           if ((game->tick / 30) % 2 == 0) {
@@ -152,10 +152,9 @@ void game_draw(Game *game) {
 
         case PLAYING_DELIVERED:
           vg_draw_xpm(deliver_pixmap, deliver_img, 0, 0);
-          
-          draw_string(615, 200, "PIZZA ENTREGUE:", 1, rgb(30, 30, 30));
-          draw_string(645, 250, game->delivery_time_str, 2, rgb(30, 30, 30));
-          
+          draw_order_ticket(game, 602, 40);
+          draw_pizza(game, 300, 320, 150);
+
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
           draw_button_label(605, 495, 174, 40, "CONTINUAR", 2, rgb(30, 60, 30));
           break;

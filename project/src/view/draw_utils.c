@@ -57,8 +57,8 @@ static int char_to_font_idx(char c) {
     case 'M': return 12; case 'N': return 13; case 'O': return 14;
     case 'P': return 15; case 'Q': return 16; case 'R': return 17;
     case 'S': return 18; case 'T': return 19; case 'U': return 20;
-    case 'V': return 21; case 'W': return 36; case 'X': return 22; case 'Y': return 23;
-    case 'Z': return 24;
+    case 'V': return 21; case 'W': return 36; case 'X': return 22;
+    case 'Y': return 23; case 'Z': return 24;
     case '0': return 25; case '1': return 26; case '2': return 27;
     case '3': return 28; case '4': return 29; case '5': return 30;
     case '6': return 31; case '7': return 32; case '8': return 33;
@@ -96,15 +96,14 @@ void draw_string(int x, int y, const char *s, int scale, uint32_t color) {
     if (c == ' ') { i++; pos += char_step; continue; }
     if (c == 0xC3 && s[i + 1] != '\0') {
       unsigned char n = (unsigned char)s[i + 1];
-      if (n == 0x81) z = 38; 
-      else if (n == 0x80) z = 39; 
-      else if (n == 0x87) z = 40; 
-      else if (n == 0x83) z = 41; /* Ã */
-      else if (n == 0x95) z = 42; /* Õ */
+      if      (n == 0x81) z = 38;
+      else if (n == 0x80) z = 39;
+      else if (n == 0x87) z = 40;
+      else if (n == 0x83) z = 41;
+      else if (n == 0x95) z = 42;
       else z = 35;
       i += 2;
-    } 
-    else {
+    } else {
       z = char_to_font_idx((char)c);
       i++;
     }
@@ -135,7 +134,6 @@ void draw_circle(int cx, int cy, int radius, uint32_t color) {
     }
   }
 }
-
 
 void draw_button(int x, int y, int w, int h, bool selected, uint32_t color) {
   if (drawButtonSprite(x, y, w, h, selected, color) != 0) {
