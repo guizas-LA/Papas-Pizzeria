@@ -59,8 +59,9 @@ int rtc_read_date(rtc_date *date) {
     return 0;
 }
 
-int rtc_read_time(rtc_time_t *t) {
-    uint32_t regA, regB, h, m, s;
+
+int rtc_read_datetime(RtcTime *t) {
+    uint32_t regA, regB, h, m, s, day, month, year;
 
     do {
         sys_outb(RTC_ADDR_REG, RTC_REG_A);
@@ -70,18 +71,27 @@ int rtc_read_time(rtc_time_t *t) {
     sys_outb(RTC_ADDR_REG, RTC_REG_B);
     sys_inb(RTC_DATA_REG, &regB);
 
-    sys_outb(RTC_ADDR_REG, RTC_REG_HOUR); sys_inb(RTC_DATA_REG, &h);
-    sys_outb(RTC_ADDR_REG, RTC_REG_MIN);  sys_inb(RTC_DATA_REG, &m);
-    sys_outb(RTC_ADDR_REG, RTC_REG_SEC);  sys_inb(RTC_DATA_REG, &s);
+    sys_outb(RTC_ADDR_REG, RTC_REG_HOUR);  sys_inb(RTC_DATA_REG, &h);
+    sys_outb(RTC_ADDR_REG, RTC_REG_MIN);   sys_inb(RTC_DATA_REG, &m);
+    sys_outb(RTC_ADDR_REG, RTC_REG_SEC);   sys_inb(RTC_DATA_REG, &s);
+    sys_outb(RTC_ADDR_REG, RTC_REG_DAY);   sys_inb(RTC_DATA_REG, &day);
+    sys_outb(RTC_ADDR_REG, RTC_REG_MONTH); sys_inb(RTC_DATA_REG, &month);
+    sys_outb(RTC_ADDR_REG, RTC_REG_YEAR);  sys_inb(RTC_DATA_REG, &year);
 
     if (!(regB & RTC_DM_MSK)) {
-        h = bcd_to_bin(h);
-        m = bcd_to_bin(m);
-        s = bcd_to_bin(s);
+        h     = bcd_to_bin(h);
+        m     = bcd_to_bin(m);
+        s     = bcd_to_bin(s);
+        day   = bcd_to_bin(day);
+        month = bcd_to_bin(month);
+        year  = bcd_to_bin(year);
     }
 
-    t->hour = (uint8_t) h;
-    t->min  = (uint8_t) m;
-    t->sec  = (uint8_t) s;
+    t->hour  = (uint8_t)  h;
+    t->min   = (uint8_t)  m;
+    t->sec   = (uint8_t)  s;
+    t->day   = (uint8_t)  day;
+    t->month = (uint8_t)  month;
+    t->year  = (uint16_t)(year + 2000);
     return 0;
 }

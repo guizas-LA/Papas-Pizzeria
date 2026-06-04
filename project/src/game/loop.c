@@ -56,7 +56,7 @@ int game_loop(int argc, char *argv[]) {
   }
 
   game_init(&game);
-  rtc_read_time(&game.current_time);
+  rtc_read_datetime(&game.current_time);
   game.order_time = game.current_time;
 
   while (game_is_running(&game)) {

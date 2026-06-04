@@ -65,7 +65,7 @@ void toggle_topping(Game *game, int t) {
 
 void record_order_start(Game *game) {
   RtcTime t;
-  rtc_read_time(&t);
+  rtc_read_datetime(&t);
   game->order_time_str[0] = (char)('0' + (t.hour / 10) % 10);
   game->order_time_str[1] = (char)('0' + t.hour % 10);
   game->order_time_str[2] = ':';
@@ -140,7 +140,7 @@ void try_deliver(Game *game) {
   else if (total >= 15) game->last_stars = 1;
   else                  game->last_stars = 0;
 
-  rtc_read_time(&t);
+  rtc_read_datetime(&t);
   game->delivery_time_str[0] = (char)('0' + (t.hour / 10) % 10);
   game->delivery_time_str[1] = (char)('0' + t.hour % 10);
   game->delivery_time_str[2] = ':';
