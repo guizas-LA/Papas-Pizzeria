@@ -10,6 +10,8 @@
 #include "cut.xpm"
 #include "deliver.xpm"
 
+#include <string.h>
+
 #define SCREEN_W 800
 #define SCREEN_H 600
 
