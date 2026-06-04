@@ -2,8 +2,12 @@
 #include "rtc.h"
 #include <string.h>
 
-static const char *CUSTOMER_NAMES[] = { "ANA", "AFONSO", "GUI", "BRUNO", "DAGA" };
-#define NUM_CUSTOMERS 5
+static const char *CUSTOMER_NAMES[] = {
+  "ANA", "GUI", "BRUNO", "DAGA", "AFONSO",
+  "RICARDO", "TIAGO", "CLARA", "BEATRIZ",
+  "GUSTAVO", "MARIANA", "PEDRO"
+};
+#define NUM_CUSTOMERS 12
 
 static const int TOPPING_COMBOS[20][3] = {
   {0,1,2}, {0,1,3}, {0,1,4}, {0,1,5},
@@ -15,23 +19,57 @@ static const int TOPPING_COMBOS[20][3] = {
   {3,4,5}
 };
 
+/* Simple hash to mix order_number for less repetitive patterns */
+static int mix_n(int n) {
+  unsigned int u = (unsigned int)n;
+  u ^= (u << 13);
+  u ^= (u >> 7);
+  u ^= (u << 5);
+  return (int)(u & 0x7FFFFFFF);
+}
+
 static int oven_target_ticks(Game *game) {
   return game->order.cook_seconds * GAME_FPS;
 }
 
 void make_order(Game *game) {
   int n     = game->order_number;
-  int combo = n % 20;
-  const char *name = CUSTOMER_NAMES[n % NUM_CUSTOMERS];
+  int h     = mix_n(n);
+  int combo = h % 20;
+  int difficulty = n / 3;  /* increases every 3 orders */
+  int name_pool, cook_base, cook_range;
 
-  game->order.sauce        = n % 2;
+  /* Gradually introduce harder (longer) names */
+  name_pool = 5 + difficulty;
+  if (name_pool > NUM_CUSTOMERS) name_pool = NUM_CUSTOMERS;
+
+  game->order.sauce        = h % 2;
   game->order.toppings[0]  = TOPPING_COMBOS[combo][0];
   game->order.toppings[1]  = TOPPING_COMBOS[combo][1];
   game->order.toppings[2]  = TOPPING_COMBOS[combo][2];
-  game->order.cook_seconds = 5 + (n % 4);
-  game->order.slices       = (n % 2 == 0) ? 6 : 8;
-  strncpy(game->order.name, name, 7);
-  game->order.name[7] = '\0';
+
+  /* Cook time: starts easy (5-8s), gradually wider range (4-12s) */
+  cook_base  = 5 - (difficulty > 1 ? 1 : 0);  /* min 4 */
+  if (cook_base < 4) cook_base = 4;
+  cook_range = 4 + difficulty;
+  if (cook_range > 9) cook_range = 9;  /* max range: 4-12s */
+  game->order.cook_seconds = cook_base + (h / 20) % cook_range;
+
+  /* Slices: start with 6, introduce 4 and 8 gradually */
+  if (n < 3)
+    game->order.slices = 6;
+  else if (n < 8)
+    game->order.slices = (h % 2 == 0) ? 6 : 8;
+  else {
+    int s = h % 3;
+    game->order.slices = (s == 0) ? 4 : (s == 1) ? 6 : 8;
+  }
+
+  {
+    const char *name = CUSTOMER_NAMES[h % name_pool];
+    strncpy(game->order.name, name, 7);
+    game->order.name[7] = '\0';
+  }
 
   game->selected_sauce  = -1;
   game->active_topping  = -1;
@@ -112,9 +150,11 @@ void try_deliver(Game *game) {
 
   {
     int cs = game->oven_ticks / GAME_FPS;
+    int penalty = 4 + game->order_number / 8;  /* gradual: 4 → max 8 */
+    if (penalty > 8) penalty = 8;
     off = cs - game->order.cook_seconds;
     if (off < 0) off = -off;
-    oven_s = 12 - off * 4;
+    oven_s = 12 - off * penalty;
     if (oven_s < 0) oven_s = 0;
   }
 
@@ -135,10 +175,20 @@ void try_deliver(Game *game) {
   total = sauce_s + top_s + oven_s + slice_s;
   game->last_score_10 = total;
 
-  if (total >= 42)      game->last_stars = 3;
-  else if (total >= 30) game->last_stars = 2;
-  else if (total >= 15) game->last_stars = 1;
-  else                  game->last_stars = 0;
+  {
+    /* Star thresholds get slightly harder over time */
+    int star3 = 42 + game->order_number / 5;
+    int star2 = 30 + game->order_number / 6;
+    int star1 = 15 + game->order_number / 8;
+    if (star3 > 48) star3 = 48;  /* max score is 50, keep achievable */
+    if (star2 > 38) star2 = 38;
+    if (star1 > 22) star1 = 22;
+
+    if (total >= star3)      game->last_stars = 3;
+    else if (total >= star2) game->last_stars = 2;
+    else if (total >= star1) game->last_stars = 1;
+    else                     game->last_stars = 0;
+  }
 
   rtc_read_datetime(&t);
   game->delivery_time_str[0] = (char)('0' + (t.hour / 10) % 10);

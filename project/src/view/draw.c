@@ -138,7 +138,10 @@ void game_draw(Game *game) {
             vg_draw_rectangle(85, 45, 420, 18, rgb(60, 60, 60));
             vg_draw_rectangle(85, 45, oven_bar_width, 18, rgb(235, 180, 70));
             draw_string(85, 70, "TEMPO:", 2, rgb(255, 240, 160));
-            { char sec_buf[2] = { (char)('0' + remaining_seconds), '\0' };
+            { char sec_buf[4]; int si = 0;
+              if (remaining_seconds >= 10) sec_buf[si++] = (char)('0' + remaining_seconds / 10);
+              sec_buf[si++] = (char)('0' + remaining_seconds % 10);
+              sec_buf[si] = '\0';
               draw_string(175, 70, sec_buf, 2, rgb(255, 240, 160)); }
 
             draw_pizza(game, 300, 320, 150);

@@ -132,6 +132,8 @@ void handle_click(Game *game) {
           break;
 
         case PLAYING_DELIVERED:
+          if (mouse_inside(game, 605, 495, 174, 40))
+            serve_pizza(game);
           break;
       }
       break;

@@ -29,6 +29,7 @@ bool game_is_running(Game *game) {
 
 void game_update(Game *game) {
   game->tick++;
+  if (game->tick >= 60000) game->tick = 0;
 
   if (game->tick % GAME_FPS == 0)
     rtc_read_datetime(&game->current_time);

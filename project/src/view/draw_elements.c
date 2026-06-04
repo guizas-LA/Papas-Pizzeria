@@ -74,9 +74,14 @@ void draw_order_ticket(Game *game, int x, int y) {
   for (i = 0; i < 3; i++)
     draw_string(x + 18, y + 194 + i * 20, TOPPING_NAMES[game->order.toppings[i]], 1, rgb(30, 22, 16));
 
-  buf[0] = '0' + game->order.cook_seconds;
-  buf[1]=' '; buf[2]='S'; buf[3]='E'; buf[4]='G'; buf[5]='U';
-  buf[6]='N'; buf[7]='D'; buf[8]='O'; buf[9]='S'; buf[10]='\0';
+  {
+    int cs = game->order.cook_seconds;
+    int bi = 0;
+    if (cs >= 10) buf[bi++] = (char)('0' + cs / 10);
+    buf[bi++] = (char)('0' + cs % 10);
+    buf[bi++]=' '; buf[bi++]='S'; buf[bi++]='E'; buf[bi++]='G'; buf[bi++]='U';
+    buf[bi++]='N'; buf[bi++]='D'; buf[bi++]='O'; buf[bi++]='S'; buf[bi]= '\0';
+  }
   draw_string(x + 18, y + 285, "FORNO:", 1, rgb(141, 90, 46));
   draw_string(x + 18, y + 303, buf, 2, rgb(30, 22, 16));
 
