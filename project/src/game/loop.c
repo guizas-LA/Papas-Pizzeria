@@ -36,6 +36,9 @@ int game_loop(int argc, char *argv[]) {
     return 1;
   }
 
+  mouse_write_cmd(0xE8);  /* set resolution: 8 counts/mm */
+  mouse_write_cmd(0x03);
+
   if (mouse_write_cmd(EN_DATA_REPORT) != 0) {
     unsubscribe_all();
     vg_exit();
@@ -84,16 +87,15 @@ int game_loop(int argc, char *argv[]) {
 
       if (msg.m_notify.interrupts & BIT(mouse_irq)) {
         uint8_t byte;
-        if (read_kbc_byte(&byte, true) == 0) {
+        while (read_kbc_byte(&byte, true) == 0) {
           if (mouse_byte_count == 0 && ((byte & BIT(3)) == 0)) continue;
 
-          mouse_bytes[mouse_byte_count] = byte;
-          mouse_byte_count++;
+          mouse_bytes[mouse_byte_count++] = byte;
 
           if (mouse_byte_count == 3) {
-            struct packet packet;
-            mouse_parse_packet(mouse_bytes, &packet);
-            game_handle_mouse_packet(&game, &packet);
+            struct packet pkt;
+            mouse_parse_packet(mouse_bytes, &pkt);
+            game_handle_mouse_packet(&game, &pkt);
             mouse_byte_count = 0;
           }
         }

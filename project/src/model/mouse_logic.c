@@ -142,8 +142,8 @@ void handle_click(Game *game) {
 
 
 void game_handle_mouse_packet(Game *game, struct packet *packet) {
-  game->mouse_x += packet->delta_x;
-  game->mouse_y -= packet->delta_y;
+  if (!packet->x_ov) game->mouse_x += packet->delta_x;
+  if (!packet->y_ov) game->mouse_y -= packet->delta_y;
 
   if (game->mouse_x < 7) game->mouse_x = 7;
   if (game->mouse_y < 7) game->mouse_y = 7;
