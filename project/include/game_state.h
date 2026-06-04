@@ -4,6 +4,7 @@
 #include <lcom/lcf.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "rtc.h"
 
 #define GAME_VIDEO_MODE 0x115
 #define GAME_FPS 60
@@ -55,6 +56,7 @@ typedef struct {
   char typed_name[8];
   int typed_len;
   char delivery_time_str[9];
+  char order_time_str[9];
 
   int mouse_x;
   int mouse_y;
@@ -64,6 +66,9 @@ typedef struct {
 
   int last_score_10;
   int last_stars;
+
+  RtcTime current_time;
+  RtcTime order_time;
 } Game;
 
 void game_init(Game *game);

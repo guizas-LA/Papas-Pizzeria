@@ -44,8 +44,11 @@ static void draw_delivered_ticket(Game *game, int x, int y) {
 
   vg_draw_rectangle(x + 14, y + 150, 152, 1, rgb(141, 90, 46));
 
-  draw_string(x + 18, y + 160, "ENTREGA", 1, rgb(141, 90, 46));
-  draw_string(x + 18, y + 174, game->delivery_time_str, 2, rgb(30, 22, 16));
+  draw_string(x + 18, y + 160, "INICIO", 1, rgb(141, 90, 46));
+  draw_string(x + 18, y + 174, game->order_time_str, 2, rgb(30, 22, 16));
+
+  draw_string(x + 18, y + 200, "ENTREGA", 1, rgb(141, 90, 46));
+  draw_string(x + 18, y + 214, game->delivery_time_str, 2, rgb(30, 22, 16));
 }
 
 void draw_order_ticket(Game *game, int x, int y) {

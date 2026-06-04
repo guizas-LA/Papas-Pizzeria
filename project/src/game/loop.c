@@ -7,6 +7,8 @@
 #include <stdio.h>
 
 #include "game_state.h"
+#include "keyboard_logic.h"
+#include "mouse_logic.h"
 #include "draw.h"
 #include "graphics.h"
 #include "interrupts.h"

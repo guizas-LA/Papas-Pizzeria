@@ -18,6 +18,7 @@ void game_init(Game *game) {
   game->last_score_10    = 0;
   game->last_stars       = 0;
   game->delivery_time_str[0] = '\0';
+  game->order_time_str[0]    = '\0';
   make_order(game);
 }
 
@@ -27,6 +28,9 @@ bool game_is_running(Game *game) {
 
 void game_update(Game *game) {
   game->tick++;
+
+  if (game->tick % GAME_FPS == 0)
+    rtc_read_time(&game->current_time);
 
   if (game->state == GAME_STATE_PLAYING &&
       game->playing_state == PLAYING_PREPARE_PIZZA &&
