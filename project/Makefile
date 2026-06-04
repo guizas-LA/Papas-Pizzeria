@@ -1,8 +1,8 @@
 PROG= proj
 
-.PATH: src src/model src/view ../lab1 ../lab2
+.PATH: src/game src/model src/view ../lab1 ../lab2
 
-SRCS= main.c loop.c interrupts.c timer.c rtc.c game_state.c draw.c draw_elements.c draw_utils.c sprites.c
+SRCS= main.c loop.c interrupts.c timer.c rtc.c game_state.c game_logic.c mouse_logic.c keyboard_logic.c draw.c draw_elements.c draw_utils.c sprites.c
 
 CFLAGS += -Iinclude
 CFLAGS += -Iimages
