@@ -57,6 +57,7 @@ typedef struct {
 
   RtcTime current_time;
   RtcTime order_time;
+  int accept_tick;
 } Game;
 
 void game_init(Game *game);

@@ -25,8 +25,6 @@ static void fmt2(char *s, int pos, uint8_t v) {
 
 void draw_order_ticket(Game *game, int x, int y) {
   char buf[12];
-  char tbuf[9]; /* HH:MM:SS\0 */
-  char dbuf[9]; /* DD/MM/AA\0 */
   int i;
 
   if (drawOrderTicketSprite(x, y, 180, 434) != 0) {
@@ -54,20 +52,35 @@ void draw_order_ticket(Game *game, int x, int y) {
   buf[1] = ' '; buf[2] = 'F'; buf[3] = 'A'; buf[4] = 'T'; buf[5] = 'I';
   buf[6] = 'A'; buf[7] = 'S'; buf[8] = '\0';
   draw_string(x + 18, y + 354, "CORTE", 1, rgb(141, 90, 46));
-  draw_string(x + 18, y + 372, buf, 2, rgb(30, 22, 16));
+  draw_string(x + 18, y + 367, buf, 2, rgb(30, 22, 16));
 
-  /* Order timestamp from RTC */
-  fmt2(tbuf, 0, game->order_time.hour); tbuf[2] = ':';
-  fmt2(tbuf, 3, game->order_time.min);  tbuf[5] = ':';
-  fmt2(tbuf, 6, game->order_time.sec);  tbuf[8] = '\0';
-  fmt2(dbuf, 0, game->order_time.day);  dbuf[2] = '/';
-  fmt2(dbuf, 3, game->order_time.month); dbuf[5] = '/';
-  fmt2(dbuf, 6, (uint8_t)(game->order_time.year % 100)); dbuf[8] = '\0';
+  /* Bottom section: only shown after the player accepts the order */
+  if (game->playing_state != PLAYING_TAKE_ORDER) {
+    char hbuf[14]; /* "HORA HH:MM:SS\0" */
+    hbuf[0]='H'; hbuf[1]='O'; hbuf[2]='R'; hbuf[3]='A'; hbuf[4]=' ';
+    fmt2(hbuf,  5, game->order_time.hour);  hbuf[7]  = ':';
+    fmt2(hbuf,  8, game->order_time.min);   hbuf[10] = ':';
+    fmt2(hbuf, 11, game->order_time.sec);   hbuf[13] = '\0';
 
-  vg_draw_rectangle(x + 14, y + 393, 152, 1, rgb(141, 90, 46));
-  draw_string(x + 18, y + 398, "HORA PEDIDO", 1, rgb(141, 90, 46));
-  draw_string(x + 18, y + 410, tbuf, 2, rgb(30, 22, 16));
-  draw_string(x + 30, y + 426, dbuf, 1, rgb(94, 59, 34));
+    vg_draw_rectangle(x + 14, y + 383, 152, 1, rgb(141, 90, 46));
+    draw_string(x + 18, y + 388, hbuf, 1, rgb(94, 59, 34));
+
+    /* Elapsed timer — only visible while preparing */
+    if (game->playing_state == PLAYING_PREPARE_PIZZA) {
+      int elapsed_s = (game->tick - game->accept_tick) / GAME_FPS;
+      int elapsed_m = elapsed_s / 60;
+      char lbuf[12]; /* "TEMPO MM:SS\0" */
+      elapsed_s %= 60;
+      lbuf[0]='T'; lbuf[1]='E'; lbuf[2]='M'; lbuf[3]='P'; lbuf[4]='O'; lbuf[5]=' ';
+      lbuf[6]  = (char)('0' + elapsed_m / 10);
+      lbuf[7]  = (char)('0' + elapsed_m % 10);
+      lbuf[8]  = ':';
+      lbuf[9]  = (char)('0' + elapsed_s / 10);
+      lbuf[10] = (char)('0' + elapsed_s % 10);
+      lbuf[11] = '\0';
+      draw_string(x + 18, y + 398, lbuf, 1, rgb(30, 22, 16));
+    }
+  }
 }
 
 void draw_button_label(int bx, int by, int bw, int bh, const char *s, int scale, uint32_t color) {

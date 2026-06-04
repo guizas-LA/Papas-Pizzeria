@@ -76,7 +76,6 @@ static void make_order(Game *game) {
   game->selected_slices         = 0;
   game->typed_name[0]           = '\0';
   game->typed_len               = 0;
-  game->order_time              = game->current_time;
 }
 
 static void toggle_topping(Game *game, int t) {
@@ -122,6 +121,7 @@ void game_init(Game *game) {
   game->current_time.day   = 1;
   game->current_time.month = 1;
   game->current_time.year  = 2026;
+  game->accept_tick        = 0;
   make_order(game);
 }
 
@@ -188,8 +188,11 @@ static void handle_click(Game *game) {
     case GAME_STATE_PLAYING:
       switch (game->playing_state) {
         case PLAYING_TAKE_ORDER:
-          if (mouse_inside(game, 605, 495, 174, 40))
+          if (mouse_inside(game, 605, 495, 174, 40)) {
             game->playing_state = PLAYING_PREPARE_PIZZA;
+            game->order_time    = game->current_time;
+            game->accept_tick   = game->tick;
+          }
           break;
 
         case PLAYING_PREPARE_PIZZA:
@@ -275,8 +278,11 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
     case GAME_STATE_PLAYING:
       switch (game->playing_state) {
         case PLAYING_TAKE_ORDER:
-          if (scancode == ENTER_BREAK)
+          if (scancode == ENTER_BREAK) {
             game->playing_state = PLAYING_PREPARE_PIZZA;
+            game->order_time    = game->current_time;
+            game->accept_tick   = game->tick;
+          }
           break;
         case PLAYING_PREPARE_PIZZA:
           if (!game->pizza_in_oven) {
