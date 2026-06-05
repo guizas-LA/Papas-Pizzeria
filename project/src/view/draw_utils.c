@@ -281,4 +281,21 @@ void draw_button(int x, int y, int w, int h, bool selected, uint32_t color) {
   }
 }
 
+void draw_xpm_scaled(uint8_t *pixmap, xpm_image_t img, int dst_w, int dst_h) {
+  int dst_row, dst_col, src_row, src_col;
+  unsigned int si, di;
+  if (fb_buf == NULL || pixmap == NULL || dst_w <= 0 || dst_h <= 0) return;
+  for (dst_row = 0; dst_row < dst_h; dst_row++) {
+    if (dst_row >= SCREEN_H) break;
+    src_row = dst_row * (int)img.height / dst_h;
+    for (dst_col = 0; dst_col < dst_w; dst_col++) {
+      if (dst_col >= SCREEN_W) break;
+      src_col = dst_col * (int)img.width / dst_w;
+      si = (unsigned int)(src_row * (int)img.width + src_col) * bpp;
+      di = (unsigned int)(dst_row * SCREEN_W + dst_col) * bpp;
+      memcpy(&fb_buf[di], &pixmap[si], bpp);
+    }
+  }
+}
+
 #pragma clang optimize on

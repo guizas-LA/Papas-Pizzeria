@@ -97,6 +97,7 @@ typedef struct {
   int last_stars;
 
   bool show_back_popup;
+  bool show_exit_popup;
 
   RtcTime current_time;
   RtcTime order_time;
