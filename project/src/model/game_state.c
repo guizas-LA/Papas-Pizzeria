@@ -1,10 +1,20 @@
+/**
+ * @file game_state.c
+ * @brief Game state initialisation and per-tick update logic.
+ */
+
 #include "game_state.h"
 #include "game_logic.h"
 #include "mouse_logic.h"
 
-#define SCREEN_W 800
-#define SCREEN_H 600
+#define SCREEN_W 800 /**< Screen width in pixels. */
+#define SCREEN_H 600 /**< Screen height in pixels. */
 
+/**
+ * @brief Initialises all fields of the @c Game struct to their starting values.
+ *        Reads the current RTC time and generates the first customer order.
+ * @param game Pointer to the @c Game struct to initialise.
+ */
 void game_init(Game *game) {
   game->state            = GAME_STATE_MENU;
   game->playing_state    = PLAYING_TAKE_ORDER;
@@ -34,11 +44,21 @@ void game_init(Game *game) {
   make_order(game);
 }
 
+/**
+ * @brief Returns whether the game loop should keep running.
+ * @param game Pointer to the current game state.
+ * @return @c true while the game is active, @c false when the player has quit.
+ */
 bool game_is_running(Game *game) {
   return game->running;
 }
 
 #pragma clang optimize off
+/**
+ * @brief Called once per timer tick; advances time-based states, ticks the oven counter,
+ *        and delegates mouse-click processing to @c handle_click().
+ * @param game Pointer to the current game state.
+ */
 void game_update(Game *game) {
   GameState st;
   static int open_ctr  = -1;

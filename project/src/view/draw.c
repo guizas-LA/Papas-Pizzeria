@@ -1,3 +1,8 @@
+/**
+ * @file draw.c
+ * @brief Top-level frame renderer: dispatches drawing for every game state and overlay.
+ */
+
 #include "draw.h"
 #include "draw_elements.h"
 #include "draw_utils.h"
@@ -16,9 +21,16 @@
 
 #pragma clang optimize off
 
-#define SCREEN_W 800
-#define SCREEN_H 600
+#define SCREEN_W 800 /**< Screen width in pixels. */
+#define SCREEN_H 600 /**< Screen height in pixels. */
 
+/**
+ * @brief Renders the complete game frame into the back-buffer and flips it to the screen.
+ *        Clears the buffer, draws the appropriate background XPM for the current state,
+ *        renders all UI elements (buttons, ticket, pizza, overlays), draws any active
+ *        confirmation popup, and finally draws the mouse cursor before calling draw_swap().
+ * @param game Pointer to the current game state (used read-only for rendering decisions).
+ */
 void game_draw(Game *game) {
   static uint8_t *menu_pixmap         = NULL; static xpm_image_t menu_img;
   static uint8_t *take_pixmap         = NULL; static xpm_image_t take_img;

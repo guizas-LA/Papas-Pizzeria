@@ -1,3 +1,8 @@
+/**
+ * @file loop.c
+ * @brief Main game loop: device initialisation, event dispatch, and cleanup.
+ */
+
 #include "loop.h"
 
 #include <lcom/lcf.h>
@@ -16,8 +21,16 @@
 #include "sprites.h"
 #include "draw_utils.h"
 
-#define EN_DATA_REPORT 0xF4
+#define EN_DATA_REPORT 0xF4 /**< Mouse command: enable data reporting. */
 
+/**
+ * @brief Initialises all subsystems (VBE, frame-buffer, interrupts, sprites) and runs
+ *        the IPC-based event loop, dispatching timer, keyboard, and mouse notifications
+ *        until @c game_is_running() returns false.
+ * @param argc Argument count (unused).
+ * @param argv Argument vector (unused).
+ * @return 0 on clean exit, 1 if any initialisation step fails.
+ */
 int game_loop(int argc, char *argv[]) {
   uint8_t timer_irq;
   uint8_t kbd_irq;

@@ -1,3 +1,8 @@
+/**
+ * @file draw_elements.c
+ * @brief Game-specific composite drawing: order ticket, pizza, cut lines, and UI elements.
+ */
+
 #include "draw_elements.h"
 #include "draw_utils.h"
 #include "sprites.h"
@@ -5,8 +10,12 @@
 
 #pragma clang optimize off
 
+/** @brief Human-readable sauce names, indexed by @c Order::sauce. */
 static const char *SAUCE_NAMES[]   = { "MOLHO DE TOMATE", "MOLHO BRANCO" };
+/** @brief Human-readable topping names, indexed by topping type (0–5). */
 static const char *TOPPING_NAMES[] = { "COGUMELO", "PEPERONI", "FIAMBRE", "ANANÁS", "QUEIJO", "AZEITONAS" };
+
+/** @brief RGB fill colours for each topping type (0 = cogumelo … 5 = azeitona). */
 const uint32_t TOPPING_COLORS[] = {
   0x8C6432,  /* cogumelo */
   0x7A1A0E,  /* peperoni — dark red */
@@ -16,6 +25,13 @@ const uint32_t TOPPING_COLORS[] = {
   0x284619,  /* azeitona */
 };
 
+/**
+ * @brief Draws a filled diamond (rotated square) centred at (@p cx, @p cy).
+ * @param cx    Centre x coordinate.
+ * @param cy    Centre y coordinate.
+ * @param size  Half-diagonal in pixels (total diagonal = 2·size + 1).
+ * @param color Fill colour.
+ */
 void draw_diamond(int cx, int cy, int size, uint32_t color) {
   int i;
   for (i = -size; i <= size; i++) {
@@ -24,6 +40,13 @@ void draw_diamond(int cx, int cy, int size, uint32_t color) {
   }
 }
 
+/**
+ * @brief Renders the delivery result sub-ticket (stars, score, start/end times).
+ *        Called internally from @c draw_order_ticket when the state is @c PLAYING_DELIVERED.
+ * @param game Pointer to the current game state.
+ * @param x    Left edge of the ticket panel.
+ * @param y    Top edge of the ticket panel.
+ */
 static void draw_delivered_ticket(Game *game, int x, int y) {
   int stars = game->last_stars;
   int sc    = game->last_score_10;
@@ -55,6 +78,14 @@ static void draw_delivered_ticket(Game *game, int x, int y) {
   draw_string(x + 18, y + 214, game->delivery_time_str, 2, rgb(30, 22, 16));
 }
 
+/**
+ * @brief Draws the order ticket panel.  Shows the active order (sauce, toppings with
+ *        quantities, cook time, slices) during preparation, or the delivery result when
+ *        @c game->playing_state is @c PLAYING_DELIVERED.
+ * @param game Pointer to the current game state.
+ * @param x    Left edge of the ticket panel in pixels.
+ * @param y    Top edge of the ticket panel in pixels.
+ */
 void draw_order_ticket(Game *game, int x, int y) {
   char buf[12];
   char qbuf[16];
@@ -109,16 +140,38 @@ void draw_order_ticket(Game *game, int x, int y) {
   draw_string(x + 18, y + 367, buf, 2, rgb(30, 22, 16));
 }
 
+/**
+ * @brief Draws a horizontally and vertically centred text label inside a button rectangle.
+ * @param bx    Button left edge.
+ * @param by    Button top edge.
+ * @param bw    Button width.
+ * @param bh    Button height.
+ * @param s     Null-terminated label string.
+ * @param scale Font pixel scale factor.
+ * @param color Text colour.
+ */
 void draw_button_label(int bx, int by, int bw, int bh, const char *s, int scale, uint32_t color) {
   int tx = bx + (bw - (int)strlen(s) * 6 * scale) / 2;
   int ty = by + (bh - 7 * scale) / 2;
   draw_string(tx, ty, s, scale, color);
 }
 
+/**
+ * @brief Returns whether topping type @p t is the currently active placement tool.
+ * @param game Pointer to the current game state.
+ * @param t    Topping type index (0–5).
+ * @return @c true if @c game->active_topping equals @p t.
+ */
 bool topping_selected(Game *game, int t) {
   return game->active_topping == t;
 }
 
+/**
+ * @brief Darkens a colour by a percentage.
+ * @param color Source colour.
+ * @param pct   Darken percentage (0 = no change, 100 = black).
+ * @return Darkened colour.
+ */
 static uint32_t darken(uint32_t color, int pct) {
   uint8_t r = (uint8_t)(((color >> 16) & 0xFF) * (100 - pct) / 100);
   uint8_t g = (uint8_t)(((color >>  8) & 0xFF) * (100 - pct) / 100);
@@ -126,6 +179,14 @@ static uint32_t darken(uint32_t color, int pct) {
   return rgb(r, g, b);
 }
 
+/**
+ * @brief Draws the pizza: crust, sauce, cheese layer (if present), and topping dots.
+ *        Progressively darkens the pizza while it is overbaked in the oven.
+ * @param game Pointer to the current game state.
+ * @param cx   Centre x of the pizza circle.
+ * @param cy   Centre y of the pizza circle.
+ * @param r    Radius of the pizza in pixels.
+ */
 void draw_pizza(Game *game, int cx, int cy, int r) {
   int i, dot_r, darken_pct, overtime, has_cheese;
   uint32_t sauce_col;
@@ -163,6 +224,14 @@ void draw_pizza(Game *game, int cx, int cy, int r) {
   }
 }
 
+/**
+ * @brief Draws a Bresenham line segment between two screen points using 3×3 dot stamps.
+ * @param x0    Start x.
+ * @param y0    Start y.
+ * @param x1    End x.
+ * @param y1    End y.
+ * @param color Line colour.
+ */
 static void draw_line_seg(int x0, int y0, int x1, int y1, uint32_t color) {
   int dx, dy, sx, sy, ax, ay, err, e2;
   dx = x1 - x0; dy = y1 - y0;
@@ -180,6 +249,14 @@ static void draw_line_seg(int x0, int y0, int x1, int y1, uint32_t color) {
   }
 }
 
+/**
+ * @brief Computes the screen-space offset for cut-point @p i on a pizza with @p N slices.
+ * @param N   Number of slices (4, 6, or 8).
+ * @param i   Cut-point index.
+ * @param r   Pizza radius in pixels.
+ * @param dx  Output: horizontal offset from the pizza centre.
+ * @param dy  Output: vertical offset from the pizza centre.
+ */
 static void cut_point_offset(int N, int i, int r, int *dx, int *dy) {
   static const int S4[] = {    0, 1000,    0, -1000 };
   static const int C4[] = { 1000,    0, -1000,    0 };
@@ -195,6 +272,14 @@ static void cut_point_offset(int N, int i, int r, int *dx, int *dy) {
   *dy = -r * C[i] / 1000;
 }
 
+/**
+ * @brief Draws all cut lines and the rim dots used for interactive cut-point selection.
+ *        The selected cut-point is rendered larger and in gold.
+ * @param game Pointer to the current game state.
+ * @param cx   Centre x of the pizza circle.
+ * @param cy   Centre y of the pizza circle.
+ * @param r    Radius of the pizza in pixels.
+ */
 void draw_pizza_cuts(Game *game, int cx, int cy, int r) {
   int N = game->order.slices;
   int i, adx, ady, bdx, bdy, pdx, pdy, dot_r;

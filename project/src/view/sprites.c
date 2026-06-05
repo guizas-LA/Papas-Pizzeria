@@ -1,3 +1,8 @@
+/**
+ * @file sprites.c
+ * @brief XPM-based sprite system: loading, destruction, and template-colourised drawing.
+ */
+
 #include "sprites.h"
 
 #include <stdlib.h>
@@ -11,31 +16,55 @@
 
 #pragma clang optimize off
 
-#define TRANSPARENT_RGB 0x00FFFFFE
-#define TEMPLATE_FILL 0x0000ED2F
+/** @brief Colour value used to mark transparent pixels in sprites. */
+#define TRANSPARENT_RGB       0x00FFFFFE
+/** @brief Template colour marking the main fill region of a normal button. */
+#define TEMPLATE_FILL         0x0000ED2F
+/** @brief Template colour marking the main fill region of a pressed button. */
 #define TEMPLATE_PRESSED_FILL 0x00027A18
-#define TEMPLATE_HIGHLIGHT 0x00FFFFFF
-#define TEMPLATE_BORDER 0x00000000
-#define SCREEN_W 800
-#define SCREEN_H 600
+/** @brief Template colour marking the highlight (bright edge) of a button. */
+#define TEMPLATE_HIGHLIGHT    0x00FFFFFF
+/** @brief Template colour marking the border of a button. */
+#define TEMPLATE_BORDER       0x00000000
 
-Sprite *buttonSprite = NULL;
-Sprite *buttonPressedSprite = NULL;
-Sprite *mouseCursorSprite = NULL;
-Sprite *orderTicketSprite = NULL;
-Sprite *openSignSprite    = NULL;
-Sprite *closedSignSprite  = NULL;
+#define SCREEN_W 800 /**< Screen width in pixels. */
+#define SCREEN_H 600 /**< Screen height in pixels. */
 
+Sprite *buttonSprite        = NULL; /**< Normal button template sprite. */
+Sprite *buttonPressedSprite = NULL; /**< Pressed button template sprite. */
+Sprite *mouseCursorSprite   = NULL; /**< Mouse cursor sprite. */
+Sprite *orderTicketSprite   = NULL; /**< Order ticket background sprite. */
+Sprite *openSignSprite      = NULL; /**< "Open" sign sprite. */
+Sprite *closedSignSprite    = NULL; /**< "Closed" sign sprite. */
+
+/**
+ * @brief Strips the alpha byte from a 32-bit ARGB value, returning only RGB.
+ * @param color Input 32-bit colour value.
+ * @return 24-bit RGB value (bits 23–0).
+ */
 static uint32_t sprite_rgb(uint32_t color) {
   return color & 0x00FFFFFF;
 }
 
+/**
+ * @brief Writes a single pixel via @c draw_pixel(), clipped to screen bounds.
+ * @param x     Horizontal position.
+ * @param y     Vertical position.
+ * @param color Pixel colour.
+ * @return Always 0 (clips silently rather than reporting out-of-bounds as an error).
+ */
 static int draw_clipped_pixel(int x, int y, uint32_t color) {
   if (x < 0 || y < 0 || x >= SCREEN_W || y >= SCREEN_H) return 0;
   draw_pixel(x, y, color);
   return 0;
 }
 
+/**
+ * @brief Scales each RGB component of a colour by a given percentage.
+ * @param color   Source colour.
+ * @param percent Scale factor (100 = unchanged, 75 = 75% brightness, 125 = brightened).
+ * @return Scaled colour, clamped to 255 per channel.
+ */
 static uint32_t shade_color(uint32_t color, uint8_t percent) {
   unsigned r = ((color >> 16) & 0xFF) * percent / 100;
   unsigned g = ((color >> 8) & 0xFF) * percent / 100;
@@ -48,6 +77,11 @@ static uint32_t shade_color(uint32_t color, uint8_t percent) {
   return rgb(r, g, b);
 }
 
+/**
+ * @brief Allocates a @c Sprite and loads its pixel data from an XPM map using ARGB mode.
+ * @param sprite XPM source map.
+ * @return Pointer to the new sprite on success, @c NULL on allocation or load failure.
+ */
 Sprite *createSprite(xpm_map_t sprite) {
   xpm_image_t img;
   Sprite *sp = (Sprite *) malloc(sizeof(Sprite));
@@ -66,6 +100,10 @@ Sprite *createSprite(xpm_map_t sprite) {
   return sp;
 }
 
+/**
+ * @brief Frees the pixel buffer and the sprite struct itself.
+ * @param sprite Pointer to the sprite (may be @c NULL).
+ */
 void destroy_sprite(Sprite *sprite) {
   if (sprite == NULL) return;
 
@@ -76,6 +114,13 @@ void destroy_sprite(Sprite *sprite) {
   free(sprite);
 }
 
+/**
+ * @brief Blits a sprite at the given screen position, skipping transparent pixels.
+ * @param sprite Pointer to the source sprite.
+ * @param x      Destination x coordinate.
+ * @param y      Destination y coordinate.
+ * @return 0 on success, 1 if @p sprite is @c NULL.
+ */
 int drawSprite(Sprite *sprite, int x, int y) {
   uint16_t row, col;
 
@@ -92,6 +137,15 @@ int drawSprite(Sprite *sprite, int x, int y) {
   return 0;
 }
 
+/**
+ * @brief Blits a sprite scaled to the given dimensions using nearest-neighbour sampling.
+ * @param sprite Pointer to the source sprite.
+ * @param x      Destination x coordinate.
+ * @param y      Destination y coordinate.
+ * @param width  Destination width in pixels.
+ * @param height Destination height in pixels.
+ * @return 0 on success, 1 if @p sprite is @c NULL or dimensions are invalid.
+ */
 int drawSpriteScaled(Sprite *sprite, int x, int y, int width, int height) {
   int row, col;
 
@@ -111,6 +165,18 @@ int drawSpriteScaled(Sprite *sprite, int x, int y, int width, int height) {
   return 0;
 }
 
+/**
+ * @brief Draws a colourised button by substituting template pixel colours:
+ *        fill regions → @p color (shaded to 75% if selected), highlight → 125% shade,
+ *        border → near-black.  Falls back to returning 1 if sprites are unavailable.
+ * @param x        Destination x coordinate.
+ * @param y        Destination y coordinate.
+ * @param width    Button width in pixels.
+ * @param height   Button height in pixels.
+ * @param selected @c true uses the pressed-button template.
+ * @param color    Base fill colour.
+ * @return 0 on success, 1 if the sprite data is unavailable.
+ */
 int drawButtonSprite(int x, int y, int width, int height, bool selected, uint32_t color) {
   Sprite *sprite = selected ? buttonPressedSprite : buttonSprite;
   uint32_t fill = selected ? shade_color(color, 75) : color;
@@ -137,22 +203,58 @@ int drawButtonSprite(int x, int y, int width, int height, bool selected, uint32_
   return 0;
 }
 
+/**
+ * @brief Draws the mouse cursor sprite at the given position.
+ * @param x Cursor x coordinate.
+ * @param y Cursor y coordinate.
+ * @return 0 on success, 1 if the sprite is not loaded.
+ */
 int drawMouseCursorSprite(int x, int y) {
   return drawSprite(mouseCursorSprite, x, y);
 }
 
+/**
+ * @brief Draws the order ticket sprite scaled to the given dimensions.
+ * @param x      Destination x coordinate.
+ * @param y      Destination y coordinate.
+ * @param width  Destination width.
+ * @param height Destination height.
+ * @return 0 on success, 1 if the sprite is not loaded.
+ */
 int drawOrderTicketSprite(int x, int y, int width, int height) {
   return drawSpriteScaled(orderTicketSprite, x, y, width, height);
 }
 
+/**
+ * @brief Draws the "open" sign sprite scaled to the given dimensions.
+ * @param x      Destination x coordinate.
+ * @param y      Destination y coordinate.
+ * @param width  Destination width.
+ * @param height Destination height.
+ * @return 0 on success, 1 if the sprite is not loaded.
+ */
 int drawOpenSignSprite(int x, int y, int width, int height) {
   return drawSpriteScaled(openSignSprite, x, y, width, height);
 }
 
+/**
+ * @brief Draws the "closed" sign sprite scaled to the given dimensions.
+ * @param x      Destination x coordinate.
+ * @param y      Destination y coordinate.
+ * @param width  Destination width.
+ * @param height Destination height.
+ * @return 0 on success, 1 if the sprite is not loaded.
+ */
 int drawClosedSignSprite(int x, int y, int width, int height) {
   return drawSpriteScaled(closedSignSprite, x, y, width, height);
 }
 
+/**
+ * @brief Loads all required sprites from their embedded XPM sources.
+ *        The four core sprites (button, button-pressed, cursor, ticket) must succeed;
+ *        the sign sprites are loaded on a best-effort basis.
+ * @return 0 on success, 1 if any core sprite fails to load.
+ */
 int loadSprites(void) {
   buttonSprite = createSprite((xpm_map_t) button_xpm);
   buttonPressedSprite = createSprite((xpm_map_t) button_pressed_xpm);
@@ -171,6 +273,9 @@ int loadSprites(void) {
   return 0;
 }
 
+/**
+ * @brief Destroys all loaded sprites and resets every global sprite pointer to @c NULL.
+ */
 void unloadSprites(void) {
   destroy_sprite(buttonSprite);
   destroy_sprite(buttonPressedSprite);

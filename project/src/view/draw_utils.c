@@ -1,3 +1,9 @@
+/**
+ * @file draw_utils.c
+ * @brief Low-level rendering: double-buffered frame-buffer, shape primitives,
+ *        bitmap font rendering, and button drawing.
+ */
+
 #include "draw_utils.h"
 #include "sprites.h"
 
@@ -6,15 +12,25 @@
 
 #pragma clang optimize off
 
-#define SCREEN_W 800
-#define SCREEN_H 600
+#define SCREEN_W 800 /**< Horizontal resolution in pixels. */
+#define SCREEN_H 600 /**< Vertical resolution in pixels. */
 
+/** @brief Pointer to the allocated back-buffer used for off-screen rendering. */
 static uint8_t *fb_buf  = NULL;
+/** @brief Pointer to the memory-mapped VBE linear frame-buffer. */
 static uint8_t *vram    = NULL;
+/** @brief Bytes per pixel derived from the VBE mode (typically 3 for 24 bpp). */
 static unsigned bpp     = 3;
+/** @brief Total size of the frame-buffer in bytes. */
 static unsigned fb_size = 0;
 
 
+/**
+ * @brief Queries the VBE mode, maps the hardware frame-buffer, and allocates the
+ *        back-buffer used for double-buffered rendering.
+ * @param mode VBE mode number (e.g. @c GAME_VIDEO_MODE).
+ * @return 0 on success, 1 on any failure.
+ */
 int draw_init(uint16_t mode) {
   vbe_mode_info_t vmi;
   struct minix_mem_range mr;
@@ -40,11 +56,18 @@ int draw_init(uint16_t mode) {
   return 0;
 }
 
+/**
+ * @brief Copies the back-buffer to the hardware frame-buffer (page flip / draw_swap).
+ */
 void draw_swap(void) {
   if (vram != NULL && fb_buf != NULL)
     memcpy(vram, fb_buf, fb_size);
 }
 
+/**
+ * @brief Fills the entire back-buffer with a single colour using fast row-copy.
+ * @param color Packed colour produced by @c rgb().
+ */
 void draw_clear(uint32_t color) {
   unsigned int x;
   uint8_t pixel[4];
@@ -63,6 +86,14 @@ void draw_clear(uint32_t color) {
   }
 }
 
+/**
+ * @brief Draws a filled axis-aligned rectangle, clipped to screen bounds.
+ * @param x     Left edge in pixels.
+ * @param y     Top edge in pixels.
+ * @param w     Width in pixels.
+ * @param h     Height in pixels.
+ * @param color Fill colour.
+ */
 void draw_rect(int x, int y, int w, int h, uint32_t color) {
   int x0, y0, x1, y1, row, col;
   uint8_t pixel[4];
@@ -90,6 +121,13 @@ void draw_rect(int x, int y, int w, int h, uint32_t color) {
   }
 }
 
+/**
+ * @brief Draws a filled circle using a scanline approach with integer arithmetic.
+ * @param cx     Centre x in pixels.
+ * @param cy     Centre y in pixels.
+ * @param radius Radius in pixels.
+ * @param color  Fill colour.
+ */
 void draw_circle(int cx, int cy, int radius, uint32_t color) {
   int y, half;
   int r2 = radius * radius;
@@ -119,12 +157,25 @@ void draw_circle(int cx, int cy, int radius, uint32_t color) {
   }
 }
 
+/**
+ * @brief Sets a single pixel in the back-buffer, clipped to screen bounds.
+ * @param x     Horizontal position.
+ * @param y     Vertical position.
+ * @param color Pixel colour.
+ */
 void draw_pixel(int x, int y, uint32_t color) {
   if (fb_buf == NULL) return;
   if (x < 0 || y < 0 || x >= SCREEN_W || y >= SCREEN_H) return;
   memcpy(&fb_buf[(y * SCREEN_W + x) * bpp], &color, bpp);
 }
 
+/**
+ * @brief Blits an XPM pixmap at the given screen position with clipping.
+ * @param pixmap Decoded pixel data.
+ * @param img    XPM metadata (width, height).
+ * @param x      Destination left edge.
+ * @param y      Destination top edge.
+ */
 void draw_xpm(uint8_t *pixmap, xpm_image_t img, int x, int y) {
   unsigned int row;
   unsigned int row_bytes, src_row_bytes;
@@ -150,6 +201,10 @@ void draw_xpm(uint8_t *pixmap, xpm_image_t img, int x, int y) {
   }
 }
 
+/**
+ * @brief Bitmap font data: each entry is a 7-row × 5-column 1-bit glyph.
+ *        Indexed by @c char_to_font_idx().
+ */
 static const uint8_t FONT_DATA[][7] = {
   /* A:0  */ {0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11},
   /* B:1  */ {0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E},
@@ -197,6 +252,11 @@ static const uint8_t FONT_DATA[][7] = {
   /* +:43 */ {0x00, 0x04, 0x04, 0x1F, 0x04, 0x04, 0x00},
 };
 
+/**
+ * @brief Maps an ASCII or special character to its index in @c FONT_DATA.
+ * @param c Input character.
+ * @return Font index, or 35 ('?' glyph) for unknown characters.
+ */
 static int char_to_font_idx(char c) {
   switch (c) {
     case 'A': return 0;  case 'B': return 1;  case 'C': return 2;
@@ -218,10 +278,25 @@ static int char_to_font_idx(char c) {
   }
 }
 
+/**
+ * @brief Packs three 8-bit channel values into a single 24-bit colour word.
+ * @param r Red component (0–255).
+ * @param g Green component (0–255).
+ * @param b Blue component (0–255).
+ * @return Packed colour as @c 0x00RRGGBB.
+ */
 uint32_t rgb(uint8_t r, uint8_t g, uint8_t b) {
   return (r << 16) | (g << 8) | b;
 }
 
+/**
+ * @brief Renders a single character using the built-in bitmap font.
+ * @param x     Left edge of the character cell.
+ * @param y     Top edge of the character cell.
+ * @param c     ASCII character to draw (space is a no-op).
+ * @param scale Pixel scale factor.
+ * @param color Glyph colour.
+ */
 void draw_char(int x, int y, char c, int scale, uint32_t color) {
   const uint8_t *rows;
   int row, col;
@@ -236,6 +311,16 @@ void draw_char(int x, int y, char c, int scale, uint32_t color) {
   }
 }
 
+/**
+ * @brief Renders a null-terminated string with the built-in bitmap font.
+ *        Handles UTF-8 two-byte sequences for Á (C3 81), À (C3 80), Ç (C3 87),
+ *        Ã (C3 83), and Õ (C3 95).
+ * @param x     Starting x position.
+ * @param y     Starting y position.
+ * @param s     Null-terminated string.
+ * @param scale Pixel scale factor.
+ * @param color Glyph colour.
+ */
 void draw_string(int x, int y, const char *s, int scale, uint32_t color) {
   int char_step = 6 * scale;
   int i = 0;
@@ -269,11 +354,29 @@ void draw_string(int x, int y, const char *s, int scale, uint32_t color) {
   }
 }
 
+/**
+ * @brief Draws a framed panel: a solid outer border rectangle with a light cream inner fill.
+ * @param x     Left edge.
+ * @param y     Top edge.
+ * @param w     Width.
+ * @param h     Height.
+ * @param color Border colour.
+ */
 void draw_panel(int x, int y, int w, int h, uint32_t color) {
   draw_rect(x, y, w, h, color);
   draw_rect(x + 4, y + 4, w - 8, h - 8, rgb(252, 238, 202));
 }
 
+/**
+ * @brief Draws an interactive button via the sprite system, falling back to plain
+ *        rectangles if the button sprite is not available.
+ * @param x        Left edge.
+ * @param y        Top edge.
+ * @param w        Width.
+ * @param h        Height.
+ * @param selected @c true when the button should appear highlighted.
+ * @param color    Button fill colour.
+ */
 void draw_button(int x, int y, int w, int h, bool selected, uint32_t color) {
   if (drawButtonSprite(x, y, w, h, selected, color) != 0) {
     draw_rect(x, y, w, h, selected ? rgb(48, 120, 70) : rgb(80, 80, 80));
@@ -281,6 +384,14 @@ void draw_button(int x, int y, int w, int h, bool selected, uint32_t color) {
   }
 }
 
+/**
+ * @brief Blits an XPM pixmap scaled to fill the destination dimensions using
+ *        nearest-neighbour sampling, starting at screen position (0, 0).
+ * @param pixmap Decoded pixel data.
+ * @param img    XPM metadata.
+ * @param dst_w  Destination width in pixels.
+ * @param dst_h  Destination height in pixels.
+ */
 void draw_xpm_scaled(uint8_t *pixmap, xpm_image_t img, int dst_w, int dst_h) {
   int dst_row, dst_col, src_row, src_col;
   unsigned int si, di;

@@ -1,29 +1,40 @@
+/**
+ * @file keyboard_logic.c
+ * @brief Keyboard interrupt handler: translates PS/2 scancodes into game-state changes.
+ */
+
 #include "keyboard_logic.h"
 #include "game_logic.h"
 
 #pragma clang optimize off
 
-#define ESC_MAKE       0x01
-#define ESC_BREAK      0x81
-#define ENTER_BREAK    0x9C
-#define BACKSPACE_MAKE 0x0E
-#define KEY_1_BREAK    0x82
-#define KEY_2_BREAK    0x83
-#define KEY_3_BREAK    0x84
-#define KEY_4_BREAK    0x85
-#define KEY_5_BREAK    0x86
-#define KEY_6_BREAK    0x87
-#define KEY_7_BREAK    0x88
-#define KEY_8_BREAK    0x89
+/* PS/2 Set-1 scancode constants */
+#define ESC_MAKE       0x01 /**< ESC key make (press) code. */
+#define ESC_BREAK      0x81 /**< ESC key break (release) code. */
+#define ENTER_BREAK    0x9C /**< ENTER key break code. */
+#define BACKSPACE_MAKE 0x0E /**< BACKSPACE key make code. */
+#define KEY_1_BREAK    0x82 /**< '1' key break code. */
+#define KEY_2_BREAK    0x83 /**< '2' key break code. */
+#define KEY_3_BREAK    0x84 /**< '3' key break code. */
+#define KEY_4_BREAK    0x85 /**< '4' key break code. */
+#define KEY_5_BREAK    0x86 /**< '5' key break code. */
+#define KEY_6_BREAK    0x87 /**< '6' key break code. */
+#define KEY_7_BREAK    0x88 /**< '7' key break code. */
+#define KEY_8_BREAK    0x89 /**< '8' key break code. */
 
-#define EXTENDED_PREFIX  0xE0
-#define ARROW_UP_MAKE    0x48
-#define ARROW_DOWN_MAKE  0x50
+#define EXTENDED_PREFIX  0xE0 /**< Prefix byte for extended (two-byte) scancodes. */
+#define ARROW_UP_MAKE    0x48 /**< Arrow-up make code (follows 0xE0). */
+#define ARROW_DOWN_MAKE  0x50 /**< Arrow-down make code (follows 0xE0). */
 
-#define NUM_MENU_OPTIONS     3
-#define NUM_SETTINGS_OPTIONS 8
+#define NUM_MENU_OPTIONS     3 /**< Number of options in the main menu. */
+#define NUM_SETTINGS_OPTIONS 8 /**< Number of navigable positions in the settings screen. */
 
 
+/**
+ * @brief Maps a letter-key make scancode to its uppercase ASCII character.
+ * @param sc PS/2 Set-1 make scancode.
+ * @return Uppercase ASCII character, or 0 if the scancode is not a letter key.
+ */
 static char scancode_to_char(uint8_t sc) {
   switch (sc) {
     case 0x10: return 'Q'; case 0x11: return 'W'; case 0x12: return 'E';
@@ -40,6 +51,16 @@ static char scancode_to_char(uint8_t sc) {
 }
 
 
+/**
+ * @brief Processes a single PS/2 Set-1 scancode and updates game state accordingly.
+ *        Ignores input for the first 120 ticks after startup to avoid spurious events.
+ *        Handles ESC (context-sensitive: quit, close popup, or navigate back),
+ *        extended arrow keys (menu/settings navigation), ENTER (confirm/advance),
+ *        digit keys (sauce and topping selection during pizza preparation), letter keys
+ *        and BACKSPACE (name entry during delivery).
+ * @param game     Pointer to the current game state.
+ * @param scancode Raw PS/2 Set-1 scancode byte.
+ */
 void game_handle_keyboard(Game *game, uint8_t scancode) {
   static bool extended = false;
   static bool esc_in_play = false;
@@ -163,7 +184,7 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
               case ENTER_BREAK: start_oven(game);           break;
               default: break;
             }
-          } 
+          }
           else if (scancode == ENTER_BREAK) {
             game->playing_state = PLAYING_CUT;
           }

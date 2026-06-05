@@ -1,3 +1,8 @@
+/**
+ * @file game_logic.c
+ * @brief Core gameplay logic: order generation, oven management, scoring, and delivery.
+ */
+
 #include "game_logic.h"
 #include "rtc.h"
 #include <string.h>
@@ -15,6 +20,7 @@ static const char *CUSTOMER_NAMES[] = {
 
 #define NUM_CUSTOMERS ((int)(sizeof(CUSTOMER_NAMES) / sizeof(CUSTOMER_NAMES[0])))
 
+/** @brief All two-topping combinations from the six non-cheese topping types. */
 static const int NONC_COMBOS[10][2] = {
   {0,1}, {0,2}, {0,3}, {0,5},
   {1,2}, {1,3}, {1,5},
@@ -22,6 +28,11 @@ static const int NONC_COMBOS[10][2] = {
   {3,5}
 };
 
+/**
+ * @brief Deterministic integer hash used to vary order content from the order number.
+ * @param n Input integer (typically @c order_number).
+ * @return Non-negative pseudo-random integer derived from @p n.
+ */
 static int mix_n(int n) {
   unsigned int u = (unsigned int)n;
   u ^= (u << 13);
@@ -30,10 +41,20 @@ static int mix_n(int n) {
   return (int)(u & 0x7FFFFFFF);
 }
 
+/**
+ * @brief Returns the number of oven ticks required for the current order.
+ * @param game Pointer to the current game state.
+ * @return Required oven tick count (@c cook_seconds × @c GAME_FPS).
+ */
 static int oven_target_ticks(Game *game) {
   return game->order.cook_seconds * GAME_FPS;
 }
 
+/**
+ * @brief Generates a new customer order based on @c game->order_number and the current
+ *        RTC time, then resets all pizza-preparation state fields.
+ * @param game Pointer to the current game state.
+ */
 void make_order(Game *game) {
   int n     = game->order_number;
   int h     = mix_n(n);
@@ -84,15 +105,30 @@ void make_order(Game *game) {
   game->typed_len       = 0;
 }
 
+/**
+ * @brief Checks whether the pizza has baked for at least the required duration.
+ * @param game Pointer to the current game state.
+ * @return @c true when @c oven_ticks has reached the target.
+ */
 bool oven_ready(Game *game) {
   return game->oven_ticks >= oven_target_ticks(game);
 }
 
+/**
+ * @brief Starts the oven by resetting the oven tick counter and setting @c pizza_in_oven.
+ * @param game Pointer to the current game state.
+ */
 void start_oven(Game *game) {
   game->oven_ticks    = 0;
   game->pizza_in_oven = true;
 }
 
+/**
+ * @brief Finalises the current order: increments counters, adds scores, and either
+ *        transitions to the closed-screen state when the day quota is met or starts
+ *        the next order.
+ * @param game Pointer to the current game state.
+ */
 void serve_pizza(Game *game) {
   game->day_orders_done++;
   game->day_total_stars += game->last_stars;
@@ -108,10 +144,20 @@ void serve_pizza(Game *game) {
   }
 }
 
+/**
+ * @brief Selects or deselects the given topping type as the active placement tool.
+ *        Selecting an already-active topping deactivates it.
+ * @param game Pointer to the current game state.
+ * @param t    Topping type index (0–5).
+ */
 void toggle_topping(Game *game, int t) {
   game->active_topping = (game->active_topping == t) ? -1 : t;
 }
 
+/**
+ * @brief Records the current RTC time as the order-start time string.
+ * @param game Pointer to the current game state.
+ */
 void record_order_start(Game *game) {
   RtcTime t;
   rtc_read_datetime(&t);
@@ -126,6 +172,13 @@ void record_order_start(Game *game) {
   game->order_time_str[8] = '\0';
 }
 
+/**
+ * @brief Validates the customer name, scores the pizza across four dimensions (sauce,
+ *        toppings, oven time, cut quality), records the delivery time, and transitions to
+ *        @c PLAYING_DELIVERED.  On a wrong name the score is set to 0 and the state still
+ *        advances.  Scoring is adjusted by @c game->difficulty.
+ * @param game Pointer to the current game state.
+ */
 void try_deliver(Game *game) {
   RtcTime t;
   bool placed[6];

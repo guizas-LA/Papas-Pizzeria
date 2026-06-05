@@ -1,25 +1,48 @@
+/**
+ * @file mouse_logic.c
+ * @brief Mouse click dispatch and packet processing for all game states.
+ */
+
 #include "mouse_logic.h"
 #include "game_logic.h"
 
 #pragma clang optimize off
 
-#define SCREEN_W 800
-#define SCREEN_H 600
+#define SCREEN_W 800 /**< Screen width in pixels. */
+#define SCREEN_H 600 /**< Screen height in pixels. */
 
-#define PIZZA_CX 285
-#define PIZZA_CY 265
-#define PIZZA_R  150
-#define SAUCE_R  (PIZZA_R * 88 / 105)
+#define PIZZA_CX 285                   /**< Pizza centre x during PREPARE_PIZZA. */
+#define PIZZA_CY 265                   /**< Pizza centre y during PREPARE_PIZZA. */
+#define PIZZA_R  150                   /**< Pizza radius during PREPARE_PIZZA. */
+#define SAUCE_R  (PIZZA_R * 88 / 105)  /**< Sauce circle radius (topping placement area). */
 
-#define CUT_CX 300
-#define CUT_CY 320
-#define CUT_R  150
+#define CUT_CX 300 /**< Pizza centre x during PLAYING_CUT. */
+#define CUT_CY 320 /**< Pizza centre y during PLAYING_CUT. */
+#define CUT_R  150 /**< Pizza radius during PLAYING_CUT. */
 
 
+/**
+ * @brief Tests whether the mouse cursor is currently inside a given rectangular region.
+ * @param game Pointer to the current game state (for mouse coordinates).
+ * @param x    Left edge of the region.
+ * @param y    Top edge of the region.
+ * @param w    Width of the region.
+ * @param h    Height of the region.
+ * @return @c true if the cursor lies within [x, x+w) × [y, y+h).
+ */
 static bool mouse_inside(Game *game, int x, int y, int w, int h) {
   return game->mouse_x >= x && game->mouse_x < x + w && game->mouse_y >= y && game->mouse_y < y + h;
 }
 
+/**
+ * @brief Computes the screen-space offset of cut-point @p i on a pizza with @p N slices
+ *        and radius @p r, using fixed-point trigonometry tables.
+ * @param N   Number of slices (4, 6, or 8).
+ * @param i   Cut-point index (0 … N-1).
+ * @param r   Pizza radius in pixels.
+ * @param dx  Output: horizontal offset from the pizza centre.
+ * @param dy  Output: vertical offset from the pizza centre.
+ */
 static void cut_point_offset(int N, int i, int r, int *dx, int *dy) {
   static const int S4[] = {    0, 1000,    0, -1000 };
   static const int C4[] = { 1000,    0, -1000,    0 };
@@ -35,6 +58,12 @@ static void cut_point_offset(int N, int i, int r, int *dx, int *dy) {
   *dy = -r * C[i] / 1000;
 }
 
+/**
+ * @brief Processes a pending left-click by checking hit regions for the current state.
+ *        Handles confirmation popups first, then delegates to state-specific logic.
+ *        Clears @c game->mouse_left_click at the end.
+ * @param game Pointer to the current game state.
+ */
 void handle_click(Game *game) {
   if (!game->mouse_left_click) return;
 
@@ -236,6 +265,12 @@ void handle_click(Game *game) {
 }
 
 
+/**
+ * @brief Integrates a PS/2 mouse packet: updates cursor position (clamped to screen
+ *        bounds) and detects rising-edge left-click events.
+ * @param game   Pointer to the current game state.
+ * @param packet Decoded three-byte PS/2 mouse packet.
+ */
 void game_handle_mouse_packet(Game *game, struct packet *packet) {
   if (!packet->x_ov) game->mouse_x += packet->delta_x;
   if (!packet->y_ov) game->mouse_y -= packet->delta_y;
