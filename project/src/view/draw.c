@@ -42,13 +42,13 @@ void game_draw(Game *game) {
   if (open_screen_pixmap  == NULL) open_screen_pixmap  = xpm_load((xpm_map_t) f2a3fbb0a3df4a57f9195f171b9727cd1drfa9J7j21wCTz5,            XPM_8_8_8, &open_screen_img);
   if (close_screen_pixmap == NULL) close_screen_pixmap = xpm_load((xpm_map_t) e19de3ab2636463e81a8d8cebcb35f47mId022ybinaBO6ty,            XPM_8_8_8, &close_screen_img);
 
-  vg_clear_buffer(rgb(215, 220, 205));
+  draw_clear(rgb(215, 220, 205));
 
   switch (game->state) {
 
     case GAME_STATE_MENU: {
       int hover;
-      vg_draw_xpm(menu_pixmap, menu_img, 0, 0);
+      draw_xpm(menu_pixmap, menu_img, 0, 0);
 
       hover = -1;
       if (game->mouse_x >= 510 && game->mouse_x < 740) {
@@ -142,7 +142,7 @@ void game_draw(Game *game) {
       switch (game->playing_state) {
 
         case PLAYING_TAKE_ORDER:
-          vg_draw_xpm(take_pixmap, take_img, 0, 0);
+          draw_xpm(take_pixmap, take_img, 0, 0);
           draw_order_ticket(game, 602, 40);
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
           draw_button_label(605, 495, 174, 40, "TIRAR PEDIDO", 2, rgb(30, 60, 30));
@@ -161,7 +161,7 @@ void game_draw(Game *game) {
 
         case PLAYING_PREPARE_PIZZA:
           if (!game->pizza_in_oven) {
-            vg_draw_xpm(prepare_pixmap, prepare_img, 0, 0);
+            draw_xpm(prepare_pixmap, prepare_img, 0, 0);
             draw_order_ticket(game, 602, 40);
             draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
             draw_button_label(605, 495, 174, 40, "FORNO", 2, rgb(30, 60, 30));
@@ -194,14 +194,14 @@ void game_draw(Game *game) {
             remaining_seconds = (oven_target_ticks - game->oven_ticks + GAME_FPS - 1) / GAME_FPS;
             if (remaining_seconds < 0) remaining_seconds = 0;
 
-            vg_draw_xpm(cook_pixmap, cook_img, 0, 0);
+            draw_xpm(cook_pixmap, cook_img, 0, 0);
             draw_order_ticket(game, 602, 40);
             draw_button(605, 495, 174, 40, remaining_seconds == 0, rgb(90, 160, 90));
             draw_button_label(605, 495, 174, 40, remaining_seconds == 0 ? "PARAR" : "ESPERA", 2, rgb(30, 60, 30));
 
-            vg_draw_rectangle(75, 38, 440, 50, rgb(40, 25, 10));
-            vg_draw_rectangle(85, 45, 420, 18, rgb(60, 60, 60));
-            vg_draw_rectangle(85, 45, oven_bar_width, 18, rgb(235, 180, 70));
+            draw_rect(75, 38, 440, 50, rgb(40, 25, 10));
+            draw_rect(85, 45, 420, 18, rgb(60, 60, 60));
+            draw_rect(85, 45, oven_bar_width, 18, rgb(235, 180, 70));
             draw_string(85, 70, "TEMPO:", 2, rgb(255, 240, 160));
             { char sec_buf[4]; int si = 0;
               if (remaining_seconds >= 10) sec_buf[si++] = (char)('0' + remaining_seconds / 10);
@@ -214,7 +214,7 @@ void game_draw(Game *game) {
           break;
 
         case PLAYING_CUT:
-          vg_draw_xpm(cut_pixmap, cut_img, 0, 0);
+          draw_xpm(cut_pixmap, cut_img, 0, 0);
           draw_order_ticket(game, 602, 40);
           draw_button(605, 495, 174, 40, game->num_cut_lines >= game->order.slices / 2, rgb(90, 160, 90));
           draw_button_label(605, 495, 174, 40, "CORTAR", 2, rgb(30, 60, 30));
@@ -223,7 +223,7 @@ void game_draw(Game *game) {
           break;
 
         case PLAYING_SERVE:
-          vg_draw_xpm(deliver_pixmap, deliver_img, 0, 0);
+          draw_xpm(deliver_pixmap, deliver_img, 0, 0);
           draw_panel(602, 40, 180, 434, rgb(115, 76, 43));
           draw_string(615, 180, "NOME:", 2, rgb(94, 59, 34));
           draw_string(615, 205, game->typed_name, 3, rgb(30, 30, 30));
@@ -231,7 +231,7 @@ void game_draw(Game *game) {
           name_len = (int)strlen(game->order.name);
           (void)name_len;
           if ((game->tick / 30) % 2 == 0) {
-            vg_draw_rectangle(616 + game->typed_len * 18, 205, 2, 28, rgb(30, 30, 30));
+            draw_rect(616 + game->typed_len * 18, 205, 2, 28, rgb(30, 30, 30));
           }
 
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
@@ -250,7 +250,7 @@ void game_draw(Game *game) {
           break;
 
         case PLAYING_DELIVERED:
-          vg_draw_xpm(deliver_pixmap, deliver_img, 0, 0);
+          draw_xpm(deliver_pixmap, deliver_img, 0, 0);
           draw_order_ticket(game, 602, 40);
 
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
@@ -364,10 +364,10 @@ void game_draw(Game *game) {
   }
 
   if (drawMouseCursorSprite(game->mouse_x, game->mouse_y) != 0) {
-    vg_draw_rectangle(game->mouse_x - 7, game->mouse_y - 1, 15, 3, rgb(20, 20, 20));
-    vg_draw_rectangle(game->mouse_x - 1, game->mouse_y - 7, 3, 15, rgb(20, 20, 20));
+    draw_rect(game->mouse_x - 7, game->mouse_y - 1, 15, 3, rgb(20, 20, 20));
+    draw_rect(game->mouse_x - 1, game->mouse_y - 7, 3, 15, rgb(20, 20, 20));
   }
-  vg_swap_buffer();
+  draw_swap();
 }
 
 #pragma clang optimize on

@@ -5,11 +5,15 @@
 #pragma clang optimize off
 
 static const char *CUSTOMER_NAMES[] = {
-  "ANA", "GUI", "BRUNO", "DAGA", "AFONSO",
-  "RICARDO", "TIAGO", "CLARA", "BEATRIZ",
-  "GUSTAVO", "MARIANA", "PEDRO"
+  "ANA", "JOAO", "MARIA", "TIAGO", "RITA", "PEDRO",
+  "SOFIA", "MIGUEL", "INES", "DIOGO", "BEATRIZ", "AFONSO",
+  "CARLA", "VASCO", "CLARA", "DAVID", "MARTA", "RAFAEL",
+  "BIA", "BRUNO", "CATIA", "DUARTE", "HELENA", "JORGE",
+  "LUCAS", "LEONOR", "LUISA", "MANUEL", "MATILDE", "NUNO",
+  "PAULO", "SARA", "TOMAS", "VITOR"
 };
-#define NUM_CUSTOMERS 12
+
+#define NUM_CUSTOMERS ((int)(sizeof(CUSTOMER_NAMES) / sizeof(CUSTOMER_NAMES[0])))
 
 static const int TOPPING_COMBOS[20][3] = {
   {0,1,2}, {0,1,3}, {0,1,4}, {0,1,5},
@@ -21,7 +25,6 @@ static const int TOPPING_COMBOS[20][3] = {
   {3,4,5}
 };
 
-/* Simple hash to mix order_number for less repetitive patterns */
 static int mix_n(int n) {
   unsigned int u = (unsigned int)n;
   u ^= (u << 13);
@@ -38,26 +41,20 @@ void make_order(Game *game) {
   int n     = game->order_number;
   int h     = mix_n(n);
   int combo = h % 20;
-  int difficulty = n / 3;  /* increases every 3 orders */
-  int name_pool, cook_base, cook_range;
-
-  /* Gradually introduce harder (longer) names */
-  name_pool = 5 + difficulty;
-  if (name_pool > NUM_CUSTOMERS) name_pool = NUM_CUSTOMERS;
+  int difficulty = n / 3;
+  int cook_base, cook_range;
 
   game->order.sauce        = h % 2;
   game->order.toppings[0]  = TOPPING_COMBOS[combo][0];
   game->order.toppings[1]  = TOPPING_COMBOS[combo][1];
   game->order.toppings[2]  = TOPPING_COMBOS[combo][2];
 
-  /* Cook time: starts easy (5-8s), gradually wider range (4-12s) */
-  cook_base  = 5 - (difficulty > 1 ? 1 : 0);  /* min 4 */
+  cook_base  = 5 - (difficulty > 1 ? 1 : 0);
   if (cook_base < 4) cook_base = 4;
   cook_range = 4 + difficulty;
-  if (cook_range > 9) cook_range = 9;  /* max range: 4-12s */
+  if (cook_range > 9) cook_range = 9;
   game->order.cook_seconds = cook_base + (h / 20) % cook_range;
 
-  /* Slices: start with 6, introduce 4 and 8 gradually */
   if (n < 3)
     game->order.slices = 6;
   else if (n < 8)
@@ -68,9 +65,12 @@ void make_order(Game *game) {
   }
 
   {
-    const char *name = CUSTOMER_NAMES[h % name_pool];
-    strncpy(game->order.name, name, 7);
-    game->order.name[7] = '\0';
+    int time_offset = game->current_time.hour * 13 +
+                      game->current_time.min * 7 +
+                      game->current_time.sec;
+    const char *name = CUSTOMER_NAMES[(h + n * 7 + time_offset + 3) % NUM_CUSTOMERS];
+    strncpy(game->order.name, name, sizeof(game->order.name) - 1);
+    game->order.name[sizeof(game->order.name) - 1] = '\0';
   }
 
   game->selected_sauce  = -1;
