@@ -3,11 +3,15 @@
 #include <string.h>
 
 static const char *CUSTOMER_NAMES[] = {
-  "ANA", "GUI", "BRUNO", "DAGA", "AFONSO",
-  "RICARDO", "TIAGO", "CLARA", "BEATRIZ",
-  "GUSTAVO", "MARIANA", "PEDRO"
+  "ANA", "JOAO", "MARIA", "TIAGO", "RITA", "PEDRO",
+  "SOFIA", "MIGUEL", "INES", "DIOGO", "BEATRIZ", "AFONSO",
+  "CARLA", "VASCO", "CLARA", "DAVID", "MARTA", "RAFAEL",
+  "BIA", "BRUNO", "CATIA", "DUARTE", "HELENA", "JORGE",
+  "LUCAS", "LEONOR", "LUISA", "MANUEL", "MATILDE", "NUNO",
+  "PAULO", "SARA", "TOMAS", "VITOR"
 };
-#define NUM_CUSTOMERS 12
+
+#define NUM_CUSTOMERS ((int)(sizeof(CUSTOMER_NAMES) / sizeof(CUSTOMER_NAMES[0])))
 
 static const int TOPPING_COMBOS[20][3] = {
   {0,1,2}, {0,1,3}, {0,1,4}, {0,1,5},
@@ -36,10 +40,7 @@ void make_order(Game *game) {
   int h     = mix_n(n);
   int combo = h % 20;
   int difficulty = n / 3;
-  int name_pool, cook_base, cook_range;
-
-  name_pool = 5 + difficulty;
-  if (name_pool > NUM_CUSTOMERS) name_pool = NUM_CUSTOMERS;
+  int cook_base, cook_range;
 
   game->order.sauce        = h % 2;
   game->order.toppings[0]  = TOPPING_COMBOS[combo][0];
@@ -62,9 +63,12 @@ void make_order(Game *game) {
   }
 
   {
-    const char *name = CUSTOMER_NAMES[h % name_pool];
-    strncpy(game->order.name, name, 7);
-    game->order.name[7] = '\0';
+    int time_offset = game->current_time.hour * 13 +
+                      game->current_time.min * 7 +
+                      game->current_time.sec;
+    const char *name = CUSTOMER_NAMES[(h + n * 7 + time_offset + 3) % NUM_CUSTOMERS];
+    strncpy(game->order.name, name, sizeof(game->order.name) - 1);
+    game->order.name[sizeof(game->order.name) - 1] = '\0';
   }
 
   game->selected_sauce  = -1;
