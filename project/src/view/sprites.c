@@ -4,7 +4,6 @@
 
 #include "button_sprites.xpm"
 #include "draw_utils.h"
-#include "fast_draw.h"
 #include "graphics.h"
 #include "order_ticket.xpm"
 
@@ -27,7 +26,7 @@ static uint32_t sprite_rgb(uint32_t color) {
 
 static int draw_clipped_pixel(int x, int y, uint32_t color) {
   if (x < 0 || y < 0 || x >= SCREEN_W || y >= SCREEN_H) return 0;
-  fast_pixel(x, y, color);
+  draw_pixel(x, y, color);
   return 0;
 }
 
