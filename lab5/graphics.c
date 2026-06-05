@@ -123,6 +123,7 @@ int(vg_draw_rectangle)(uint16_t x, uint16_t y, uint16_t width, uint16_t height, 
   return 0;
 }
 
+#pragma clang optimize off
 int(vg_draw_xpm)(uint8_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
   if (pixmap == NULL || hidden_buffer == NULL) {
     return 1;
@@ -142,6 +143,23 @@ int(vg_draw_xpm)(uint8_t *pixmap, xpm_image_t img, uint16_t x, uint16_t y) {
 
   return 0;
 }
+
+int(vg_draw_xpm_scaled)(uint8_t *pixmap, xpm_image_t img, uint16_t dst_w, uint16_t dst_h) {
+  uint16_t dst_row, dst_col, src_row, src_col;
+  if (pixmap == NULL || hidden_buffer == NULL) return 1;
+  if (dst_w > vmi.XResolution || dst_h > vmi.YResolution) return 1;
+  for (dst_row = 0; dst_row < dst_h; dst_row++) {
+    src_row = (uint16_t)(dst_row * img.height / dst_h);
+    for (dst_col = 0; dst_col < dst_w; dst_col++) {
+      src_col = (uint16_t)(dst_col * img.width / dst_w);
+      unsigned int si = (src_row * img.width + src_col) * bytes_per_pixel;
+      unsigned int di = (dst_row * vmi.XResolution + dst_col) * bytes_per_pixel;
+      memcpy(&hidden_buffer[di], &pixmap[si], bytes_per_pixel);
+    }
+  }
+  return 0;
+}
+#pragma clang optimize on
 
 int(vg_draw_sprite)(const sprite_t *sprite) {
   if (sprite == NULL) {

@@ -2,6 +2,8 @@
 #include "rtc.h"
 #include <string.h>
 
+#pragma clang optimize off
+
 static const char *CUSTOMER_NAMES[] = {
   "ANA", "GUI", "BRUNO", "DAGA", "AFONSO",
   "RICARDO", "TIAGO", "CLARA", "BEATRIZ",
@@ -92,19 +94,18 @@ void start_oven(Game *game) {
 }
 
 void serve_pizza(Game *game) {
-  int limit;
+  game->day_orders_done++;
+  game->day_total_stars += game->last_stars;
+  game->day_total_score += game->last_score_10;
   game->order_number++;
-  if      (game->order_limit == ORDERS_5)  limit = 5;
-  else if (game->order_limit == ORDERS_20) limit = 20;
-  else                                     limit = 10;
-  if (game->order_number >= limit) {
-    game->order_number = 0;
-    game->state = GAME_STATE_MENU;
+
+  if (game->day_orders_done >= game->day_orders_total) {
+    game->state_ticks = 0;
+    game->state = GAME_STATE_CLOSED_SCREEN;
+  } else {
     make_order(game);
-    return;
+    game->playing_state = PLAYING_TAKE_ORDER;
   }
-  make_order(game);
-  game->playing_state = PLAYING_TAKE_ORDER;
 }
 
 void toggle_topping(Game *game, int t) {
@@ -234,3 +235,5 @@ void try_deliver(Game *game) {
 
   game->playing_state = PLAYING_DELIVERED;
 }
+
+#pragma clang optimize on

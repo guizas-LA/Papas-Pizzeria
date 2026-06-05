@@ -1,6 +1,8 @@
 #include "mouse_logic.h"
 #include "game_logic.h"
 
+#pragma clang optimize off
+
 #define SCREEN_W 800
 #define SCREEN_H 600
 
@@ -47,10 +49,35 @@ void handle_click(Game *game) {
   }
 
   switch (game->state) {
+    case GAME_STATE_DAY_INTRO:
+      if (mouse_inside(game, 300, 510, 200, 50)) {
+        game->state_ticks = 0;
+        game->state = GAME_STATE_OPEN_SCREEN;
+      }
+      break;
+
+    case GAME_STATE_DAY_SUMMARY:
+      if (mouse_inside(game, 300, 510, 200, 50)) {
+        game->day_number++;
+        game->day_orders_total += game->day_increment;
+        game->day_orders_done  = 0;
+        game->day_total_stars  = 0;
+        game->day_total_score  = 0;
+        game->state_ticks      = 0;
+        game->state            = GAME_STATE_DAY_INTRO;
+      }
+      break;
+
     case GAME_STATE_MENU:
       if (mouse_inside(game, 510, 355, 230, 70)) {
-        game->state         = GAME_STATE_PLAYING;
-        game->playing_state = PLAYING_TAKE_ORDER;
+        game->day_number       = 1;
+        game->day_orders_total = 3;
+        game->day_orders_done  = 0;
+        game->day_total_stars  = 0;
+        game->day_total_score  = 0;
+        game->state_ticks      = 0;
+        game->order_number     = 0;
+        game->state            = GAME_STATE_DAY_INTRO;
       }
       else if (mouse_inside(game, 510, 445, 230, 70)) {
         game->settings_option = (int)game->difficulty;
@@ -64,21 +91,27 @@ void handle_click(Game *game) {
     case GAME_STATE_SETTINGS:
       if (mouse_inside(game, 510, 195, 230, 50)) {
         game->difficulty = DIFF_EASY;
+        game->settings_option = 0;
         game->state = GAME_STATE_MENU;
       } else if (mouse_inside(game, 510, 255, 230, 50)) {
         game->difficulty = DIFF_NORMAL;
+        game->settings_option = 1;
         game->state = GAME_STATE_MENU;
       } else if (mouse_inside(game, 510, 315, 230, 50)) {
         game->difficulty = DIFF_HARD;
+        game->settings_option = 2;
         game->state = GAME_STATE_MENU;
-      } else if (mouse_inside(game, 510, 398, 74, 50)) {
-        game->order_limit = ORDERS_5;
+      } else if (mouse_inside(game, 510, 398, 56, 50)) {
+        game->day_increment = 0;
         game->state = GAME_STATE_MENU;
-      } else if (mouse_inside(game, 588, 398, 74, 50)) {
-        game->order_limit = ORDERS_10;
+      } else if (mouse_inside(game, 568, 398, 56, 50)) {
+        game->day_increment = 1;
         game->state = GAME_STATE_MENU;
-      } else if (mouse_inside(game, 666, 398, 74, 50)) {
-        game->order_limit = ORDERS_20;
+      } else if (mouse_inside(game, 626, 398, 56, 50)) {
+        game->day_increment = 3;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 684, 398, 56, 50)) {
+        game->day_increment = 5;
         game->state = GAME_STATE_MENU;
       } else if (mouse_inside(game, 510, 460, 230, 50)) {
         game->state = GAME_STATE_MENU;  /* VOLTAR: cancel */
@@ -177,6 +210,9 @@ void handle_click(Game *game) {
           break;
       }
       break;
+
+    default:
+      break;
   }
 
   game->mouse_left_click = false;
@@ -194,3 +230,5 @@ void game_handle_mouse_packet(Game *game, struct packet *packet) {
 
   if (packet->lb) game->mouse_left_click = true;
 }
+
+#pragma clang optimize on
