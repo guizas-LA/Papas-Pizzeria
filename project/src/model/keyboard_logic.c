@@ -17,7 +17,8 @@
 #define ARROW_UP_MAKE    0x48
 #define ARROW_DOWN_MAKE  0x50
 
-#define NUM_MENU_OPTIONS 3
+#define NUM_MENU_OPTIONS     3
+#define NUM_SETTINGS_OPTIONS 6
 
 
 static char scancode_to_char(uint8_t sc) {
@@ -39,7 +40,13 @@ static char scancode_to_char(uint8_t sc) {
 void game_handle_keyboard(Game *game, uint8_t scancode) {
   static bool extended = false;
 
-  if (scancode == ESC_BREAK) { game->running = false; return; }
+  if (scancode == ESC_BREAK) {
+    if (game->state == GAME_STATE_SETTINGS)
+      game->state = GAME_STATE_MENU;
+    else
+      game->running = false;
+    return;
+  }
 
   if (scancode == EXTENDED_PREFIX) { extended = true; return; }
 
@@ -50,6 +57,11 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
         game->menu_option = (game->menu_option + NUM_MENU_OPTIONS - 1) % NUM_MENU_OPTIONS;
       else if (scancode == ARROW_DOWN_MAKE)
         game->menu_option = (game->menu_option + 1) % NUM_MENU_OPTIONS;
+    } else if (game->state == GAME_STATE_SETTINGS) {
+      if (scancode == ARROW_UP_MAKE)
+        game->settings_option = (game->settings_option + NUM_SETTINGS_OPTIONS - 1) % NUM_SETTINGS_OPTIONS;
+      else if (scancode == ARROW_DOWN_MAKE)
+        game->settings_option = (game->settings_option + 1) % NUM_SETTINGS_OPTIONS;
     }
     return;
   }
@@ -59,9 +71,22 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
       if (scancode == ENTER_BREAK) {
         switch (game->menu_option) {
           case 0: game->state = GAME_STATE_PLAYING; game->playing_state = PLAYING_TAKE_ORDER; break;
-          case 1: break;
+          case 1:
+            game->settings_option = (int)game->difficulty;
+            game->state = GAME_STATE_SETTINGS;
+            break;
           case 2: game->running = false; break;
         }
+      }
+      break;
+
+    case GAME_STATE_SETTINGS:
+      if (scancode == ENTER_BREAK) {
+        if (game->settings_option <= 2)
+          game->difficulty = (Difficulty)game->settings_option;
+        else
+          game->order_limit = (OrderLimit)(game->settings_option - 3);
+        game->state = GAME_STATE_MENU;
       }
       break;
 

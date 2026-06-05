@@ -18,8 +18,21 @@ typedef struct {
 
 typedef enum {
   GAME_STATE_MENU,
-  GAME_STATE_PLAYING
+  GAME_STATE_PLAYING,
+  GAME_STATE_SETTINGS
 } GameState;
+
+typedef enum {
+  DIFF_EASY,
+  DIFF_NORMAL,
+  DIFF_HARD
+} Difficulty;
+
+typedef enum {
+  ORDERS_5,
+  ORDERS_10,
+  ORDERS_20
+} OrderLimit;
 
 typedef enum {
   PLAYING_TAKE_ORDER,
@@ -71,9 +84,14 @@ typedef struct {
   bool mouse_left_click;
 
   int menu_option;
+  Difficulty difficulty;
+  int settings_option;
+  OrderLimit order_limit;
 
   int last_score_10;
   int last_stars;
+
+  bool show_back_popup;
 
   RtcTime current_time;
   RtcTime order_time;

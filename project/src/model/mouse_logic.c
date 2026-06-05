@@ -36,6 +36,16 @@ static void cut_point_offset(int N, int i, int r, int *dx, int *dy) {
 void handle_click(Game *game) {
   if (!game->mouse_left_click) return;
 
+  if (game->show_back_popup) {
+    if (mouse_inside(game, 280, 295, 100, 35)) {
+      game_init(game);  /* SIM: reset and return to menu */
+    } else if (mouse_inside(game, 420, 295, 100, 35)) {
+      game->show_back_popup = false;  /* NAO: dismiss popup */
+    }
+    game->mouse_left_click = false;
+    return;
+  }
+
   switch (game->state) {
     case GAME_STATE_MENU:
       if (mouse_inside(game, 510, 355, 230, 70)) {
@@ -43,13 +53,43 @@ void handle_click(Game *game) {
         game->playing_state = PLAYING_TAKE_ORDER;
       }
       else if (mouse_inside(game, 510, 445, 230, 70)) {
+        game->settings_option = (int)game->difficulty;
+        game->state = GAME_STATE_SETTINGS;
       }
       else if (mouse_inside(game, 510, 530, 230, 70)) {
         game->running = false;
       }
       break;
 
+    case GAME_STATE_SETTINGS:
+      if (mouse_inside(game, 510, 195, 230, 50)) {
+        game->difficulty = DIFF_EASY;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 510, 255, 230, 50)) {
+        game->difficulty = DIFF_NORMAL;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 510, 315, 230, 50)) {
+        game->difficulty = DIFF_HARD;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 510, 398, 74, 50)) {
+        game->order_limit = ORDERS_5;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 588, 398, 74, 50)) {
+        game->order_limit = ORDERS_10;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 666, 398, 74, 50)) {
+        game->order_limit = ORDERS_20;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 510, 460, 230, 50)) {
+        game->state = GAME_STATE_MENU;  /* VOLTAR: cancel */
+      }
+      break;
+
     case GAME_STATE_PLAYING:
+      if (mouse_inside(game, 10, 10, 90, 30)) {
+        game->show_back_popup = true;
+        break;
+      }
       switch (game->playing_state) {
         case PLAYING_TAKE_ORDER:
           if (mouse_inside(game, 605, 495, 174, 40)) {

@@ -88,7 +88,17 @@ void start_oven(Game *game) {
 }
 
 void serve_pizza(Game *game) {
+  int limit;
   game->order_number++;
+  if      (game->order_limit == ORDERS_5)  limit = 5;
+  else if (game->order_limit == ORDERS_20) limit = 20;
+  else                                     limit = 10;
+  if (game->order_number >= limit) {
+    game->order_number = 0;
+    game->state = GAME_STATE_MENU;
+    make_order(game);
+    return;
+  }
   make_order(game);
   game->playing_state = PLAYING_TAKE_ORDER;
 }
@@ -115,7 +125,7 @@ void try_deliver(Game *game) {
   RtcTime t;
   bool placed[6];
   bool required[6];
-  int i, matched, extra, off;
+  int i, matched, extra, off, num_req, extra_penalty;
   int sauce_s, top_s, oven_s, slice_s, total;
 
   if (strcmp(game->typed_name, game->order.name) != 0) {
@@ -124,16 +134,22 @@ void try_deliver(Game *game) {
     return;
   }
 
-  sauce_s = (game->selected_sauce == game->order.sauce) ? 12 : 0;
+  /* Hard: wrong sauce incurs a penalty instead of just giving 0 */
+  sauce_s = (game->selected_sauce == game->order.sauce) ? 12 :
+            (game->difficulty == DIFF_HARD) ? -12 : 0;
+
+  /* Easy: only 2 toppings required; Hard: extra toppings cost double */
+  num_req      = (game->difficulty == DIFF_EASY) ? 2 : 3;
+  extra_penalty = (game->difficulty == DIFF_HARD) ? 6 : 3;
 
   for (i = 0; i < 6; i++) { placed[i] = false; required[i] = false; }
   for (i = 0; i < game->num_placements; i++)
     placed[game->topping_placements[i].type] = true;
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < num_req; i++)
     required[game->order.toppings[i]] = true;
 
   matched = 0;
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < num_req; i++)
     if (placed[game->order.toppings[i]]) matched++;
   extra = 0;
   for (i = 0; i < 6; i++)
@@ -141,13 +157,20 @@ void try_deliver(Game *game) {
 
   top_s = matched * 7;
   if (top_s > 20) top_s = 20;
-  top_s -= extra * 3;
+  top_s -= extra * extra_penalty;
   if (top_s < 0) top_s = 0;
 
   {
     int cs = game->oven_ticks / GAME_FPS;
-    int penalty = 4 + game->order_number / 8;
-    if (penalty > 8) penalty = 8;
+    int penalty;
+    if (game->difficulty == DIFF_EASY)
+      penalty = 4;                            /* tolerates ±3 s */
+    else if (game->difficulty == DIFF_HARD)
+      penalty = 12;                           /* tolerates ±1 s */
+    else {
+      penalty = 4 + game->order_number / 8;  /* gradual: 4 → max 8 */
+      if (penalty > 8) penalty = 8;
+    }
     off = cs - game->order.cook_seconds;
     if (off < 0) off = -off;
     oven_s = 12 - off * penalty;
@@ -169,15 +192,24 @@ void try_deliver(Game *game) {
   }
 
   total = sauce_s + top_s + oven_s + slice_s;
+  if (total < 0) total = 0;
   game->last_score_10 = total;
 
   {
-    int star3 = 42 + game->order_number / 5;
-    int star2 = 30 + game->order_number / 6;
-    int star1 = 15 + game->order_number / 8;
-    if (star3 > 48) star3 = 48;
-    if (star2 > 38) star2 = 38;
-    if (star1 > 22) star1 = 22;
+    int star3, star2, star1;
+    if (game->difficulty == DIFF_EASY) {
+      star3 = 30; star2 = 20; star1 = 10;
+    } else if (game->difficulty == DIFF_HARD) {
+      star3 = 55; star2 = 40; star1 = 20;
+    } else {
+      /* Star thresholds get slightly harder over time */
+      star3 = 42 + game->order_number / 5;
+      star2 = 30 + game->order_number / 6;
+      star1 = 15 + game->order_number / 8;
+      if (star3 > 48) star3 = 48;  /* max score is 50, keep achievable */
+      if (star2 > 38) star2 = 38;
+      if (star1 > 22) star1 = 22;
+    }
 
     if (total >= star3)      game->last_stars = 3;
     else if (total >= star2) game->last_stars = 2;
