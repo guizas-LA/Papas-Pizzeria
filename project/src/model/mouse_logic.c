@@ -36,6 +36,16 @@ static void cut_point_offset(int N, int i, int r, int *dx, int *dy) {
 void handle_click(Game *game) {
   if (!game->mouse_left_click) return;
 
+  if (game->show_back_popup) {
+    if (mouse_inside(game, 280, 295, 100, 35)) {
+      game_init(game);  /* SIM: reset and return to menu */
+    } else if (mouse_inside(game, 420, 295, 100, 35)) {
+      game->show_back_popup = false;  /* NAO: dismiss popup */
+    }
+    game->mouse_left_click = false;
+    return;
+  }
+
   switch (game->state) {
     case GAME_STATE_MENU:
       if (mouse_inside(game, 510, 355, 230, 70)) {
@@ -76,6 +86,10 @@ void handle_click(Game *game) {
       break;
 
     case GAME_STATE_PLAYING:
+      if (mouse_inside(game, 10, 10, 90, 30)) {
+        game->show_back_popup = true;
+        break;
+      }
       switch (game->playing_state) {
         case PLAYING_TAKE_ORDER:
           if (mouse_inside(game, 605, 495, 174, 40)) {
