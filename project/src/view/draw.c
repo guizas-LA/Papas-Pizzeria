@@ -93,7 +93,7 @@ void game_draw(Game *game) {
 
     case GAME_STATE_SETTINGS: {
       int hover;
-      vg_draw_xpm(menu_pixmap, menu_img, 0, 0);
+      draw_xpm(menu_pixmap, menu_img, 0, 0);
 
       /* title — centred in the button column (x 510..740, 10 chars × scale 3 = 180px) */
       draw_string(535, 165, "DEFINICOES", 3, rgb(252, 238, 202));
@@ -268,7 +268,7 @@ void game_draw(Game *game) {
     case GAME_STATE_DAY_INTRO: {
       char day_buf[10];
       int di = 0, tx, hb;
-      vg_draw_rectangle(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
+      draw_rect(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
       draw_string(283, 50, "BEM VINDO AO DIA", 2, rgb(220, 200, 150));
       day_buf[di++] = 'D'; day_buf[di++] = 'I'; day_buf[di++] = 'A'; day_buf[di++] = ' ';
       if (game->day_number >= 10) day_buf[di++] = (char)('0' + (game->day_number / 10) % 10);
@@ -294,17 +294,17 @@ void game_draw(Game *game) {
 
     case GAME_STATE_OPEN_SCREEN: {
       if (open_screen_pixmap != NULL)
-        vg_draw_xpm_scaled(open_screen_pixmap, open_screen_img, SCREEN_W, SCREEN_H);
+        draw_xpm_scaled(open_screen_pixmap, open_screen_img, SCREEN_W, SCREEN_H);
       else
-        vg_draw_rectangle(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
+        draw_rect(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
       break;
     }
 
     case GAME_STATE_CLOSED_SCREEN: {
       if (close_screen_pixmap != NULL)
-        vg_draw_xpm_scaled(close_screen_pixmap, close_screen_img, SCREEN_W, SCREEN_H);
+        draw_xpm_scaled(close_screen_pixmap, close_screen_img, SCREEN_W, SCREEN_H);
       else
-        vg_draw_rectangle(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
+        draw_rect(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
       break;
     }
 
@@ -315,7 +315,7 @@ void game_draw(Game *game) {
       uint32_t gold = rgb(255, 200, 0);
       uint32_t grey = rgb(80, 70, 50);
 
-      vg_draw_rectangle(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
+      draw_rect(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
 
       /* "RESUMO DO DIA" scale 3: 13 × 18 = 234px. tx=(800-234)/2=283 */
       draw_string(283, 50, "RESUMO DO DIA", 3, rgb(220, 200, 150));
@@ -338,7 +338,7 @@ void game_draw(Game *game) {
       /* "PONTUACAO MEDIA" scale 2: 15 × 12 = 180px. x=(800-180)/2=310 */
       draw_string(310, 335, "PONTUACAO MEDIA", 2, rgb(180, 180, 180));
       draw_char(370, 362, (char)('0' + avg_score / 10), 4, rgb(255, 240, 200));
-      vg_draw_rectangle(392, 386, 4, 4, rgb(255, 240, 200));
+      draw_rect(392, 386, 4, 4, rgb(255, 240, 200));
       draw_char(398, 362, (char)('0' + avg_score % 10), 4, rgb(255, 240, 200));
 
       hb = game->mouse_x >= 300 && game->mouse_x < 500 &&
@@ -347,6 +347,19 @@ void game_draw(Game *game) {
       draw_button_label(300, 510, 200, 50, "NEXT DAY", 2, rgb(30, 60, 30));
       break;
     }
+  }
+
+  if (game->show_exit_popup) {
+    int sim_hover = game->mouse_x >= 280 && game->mouse_x < 380 &&
+                    game->mouse_y >= 295 && game->mouse_y < 330;
+    int nao_hover = game->mouse_x >= 420 && game->mouse_x < 520 &&
+                    game->mouse_y >= 295 && game->mouse_y < 330;
+    draw_panel(140, 210, 520, 170, rgb(50, 40, 80));
+    draw_string(218, 240, "TENS A CERTEZA QUE QUERES SAIR?", 2, rgb(50, 40, 80));
+    draw_button(280, 295, 100, 35, sim_hover, rgb(70, 150, 70));
+    draw_button_label(280, 295, 100, 35, "SIM", 2, rgb(200, 255, 200));
+    draw_button(420, 295, 100, 35, nao_hover, rgb(160, 40, 40));
+    draw_button_label(420, 295, 100, 35, "NAO", 2, rgb(255, 210, 210));
   }
 
   if (game->show_back_popup) {

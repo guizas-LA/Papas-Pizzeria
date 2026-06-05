@@ -133,10 +133,27 @@ void try_deliver(Game *game) {
   int i, matched, extra, off, num_req, extra_penalty;
   int sauce_s, top_s, oven_s, slice_s, total;
 
-  if (strcmp(game->typed_name, game->order.name) != 0) {
+  {
+    bool name_correct = (strcmp(game->typed_name, game->order.name) == 0);
     game->typed_name[0] = '\0';
     game->typed_len     = 0;
-    return;
+    if (!name_correct) {
+      game->last_score_10 = 0;
+      game->last_stars    = 0;
+
+      rtc_read_datetime(&t);
+      game->delivery_time_str[0] = (char)('0' + (t.hour / 10) % 10);
+      game->delivery_time_str[1] = (char)('0' + t.hour % 10);
+      game->delivery_time_str[2] = ':';
+      game->delivery_time_str[3] = (char)('0' + (t.min / 10) % 10);
+      game->delivery_time_str[4] = (char)('0' + t.min % 10);
+      game->delivery_time_str[5] = ':';
+      game->delivery_time_str[6] = (char)('0' + (t.sec / 10) % 10);
+      game->delivery_time_str[7] = (char)('0' + t.sec % 10);
+      game->delivery_time_str[8] = '\0';
+      game->playing_state = PLAYING_DELIVERED;
+      return;
+    }
   }
 
   /* Hard: wrong sauce incurs a penalty instead of just giving 0 */
@@ -203,17 +220,18 @@ void try_deliver(Game *game) {
   {
     int star3, star2, star1;
     if (game->difficulty == DIFF_EASY) {
-      star3 = 30; star2 = 20; star1 = 10;
+      star3 = 32; star2 = 22; star1 = 12;
     } else if (game->difficulty == DIFF_HARD) {
-      star3 = 55; star2 = 40; star1 = 20;
+      /* max possible score is 50; require near-perfect play for 3 stars */
+      star3 = 46; star2 = 36; star1 = 22;
     } else {
       /* Star thresholds get slightly harder over time */
-      star3 = 42 + game->order_number / 5;
-      star2 = 30 + game->order_number / 6;
-      star1 = 15 + game->order_number / 8;
-      if (star3 > 48) star3 = 48;  /* max score is 50, keep achievable */
-      if (star2 > 38) star2 = 38;
-      if (star1 > 22) star1 = 22;
+      star3 = 40 + game->order_number / 5;
+      star2 = 28 + game->order_number / 6;
+      star1 = 14 + game->order_number / 8;
+      if (star3 > 47) star3 = 47;
+      if (star2 > 36) star2 = 36;
+      if (star1 > 20) star1 = 20;
     }
 
     if (total >= star3)      game->last_stars = 3;

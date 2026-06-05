@@ -12,6 +12,7 @@ void draw_rect(int x, int y, int w, int h, uint32_t color);
 void draw_circle(int cx, int cy, int radius, uint32_t color);
 void draw_pixel(int x, int y, uint32_t color);
 void draw_xpm(uint8_t *pixmap, xpm_image_t img, int x, int y);
+void draw_xpm_scaled(uint8_t *pixmap, xpm_image_t img, int dst_w, int dst_h);
 void draw_swap(void);
 
 uint32_t rgb(uint8_t r, uint8_t g, uint8_t b);

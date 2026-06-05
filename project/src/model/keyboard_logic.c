@@ -43,10 +43,12 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
   static bool extended = false;
 
   if (scancode == ESC_BREAK) {
-    if (game->state == GAME_STATE_SETTINGS)
+    if (game->show_exit_popup)
+      game->show_exit_popup = false;
+    else if (game->state == GAME_STATE_SETTINGS)
       game->state = GAME_STATE_MENU;
     else
-      game->running = false;
+      game->show_exit_popup = true;
     return;
   }
 
@@ -69,6 +71,25 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
   }
 
   switch (game->state) {
+    case GAME_STATE_DAY_INTRO:
+      if (scancode == ENTER_BREAK) {
+        game->state_ticks = 0;
+        game->state = GAME_STATE_OPEN_SCREEN;
+      }
+      break;
+
+    case GAME_STATE_DAY_SUMMARY:
+      if (scancode == ENTER_BREAK) {
+        game->day_number++;
+        game->day_orders_total += game->day_increment;
+        game->day_orders_done  = 0;
+        game->day_total_stars  = 0;
+        game->day_total_score  = 0;
+        game->state_ticks      = 0;
+        game->state            = GAME_STATE_DAY_INTRO;
+      }
+      break;
+
     case GAME_STATE_MENU:
       if (scancode == ENTER_BREAK) {
         switch (game->menu_option) {
@@ -128,13 +149,13 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
               default: break;
             }
           } 
-          else if (scancode == ENTER_BREAK && oven_ready(game)) {
+          else if (scancode == ENTER_BREAK) {
             game->playing_state = PLAYING_CUT;
           }
           break;
 
         case PLAYING_CUT:
-          if (scancode == ENTER_BREAK && game->num_cut_lines >= game->order.slices / 2)
+          if (scancode == ENTER_BREAK)
             game->playing_state = PLAYING_SERVE;
           break;
 

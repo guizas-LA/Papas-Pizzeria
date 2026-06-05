@@ -38,6 +38,16 @@ static void cut_point_offset(int N, int i, int r, int *dx, int *dy) {
 void handle_click(Game *game) {
   if (!game->mouse_left_click) return;
 
+  if (game->show_exit_popup) {
+    if (mouse_inside(game, 280, 295, 100, 35)) {
+      game->running = false;
+    } else if (mouse_inside(game, 420, 295, 100, 35)) {
+      game->show_exit_popup = false;
+    }
+    game->mouse_left_click = false;
+    return;
+  }
+
   if (game->show_back_popup) {
     if (mouse_inside(game, 280, 295, 100, 35)) {
       game_init(game);  /* SIM: reset and return to menu */
@@ -84,7 +94,7 @@ void handle_click(Game *game) {
         game->state = GAME_STATE_SETTINGS;
       }
       else if (mouse_inside(game, 510, 530, 230, 70)) {
-        game->running = false;
+        game->show_exit_popup = true;
       }
       break;
 
@@ -157,7 +167,7 @@ void handle_click(Game *game) {
             if (mouse_inside(game, 375, 540,  80, 50)) toggle_topping(game, 5);
             if (mouse_inside(game, 605, 495, 174, 40)) start_oven(game);
           } else {
-            if (oven_ready(game) && mouse_inside(game, 605, 495, 174, 40))
+            if (mouse_inside(game, 605, 495, 174, 40))
               game->playing_state = PLAYING_CUT;
           }
           break;
@@ -166,7 +176,7 @@ void handle_click(Game *game) {
           int N = game->order.slices;
           int req_cuts = N / 2;
           int j, pdx, pdy, mdx, mdy;
-          if (mouse_inside(game, 605, 495, 174, 40) && game->num_cut_lines >= req_cuts) {
+          if (mouse_inside(game, 605, 495, 174, 40)) {
             game->playing_state = PLAYING_SERVE;
             break;
           }
@@ -228,7 +238,11 @@ void game_handle_mouse_packet(Game *game, struct packet *packet) {
   if (game->mouse_x >= SCREEN_W - 7) game->mouse_x = SCREEN_W - 8;
   if (game->mouse_y >= SCREEN_H - 7) game->mouse_y = SCREEN_H - 8;
 
-  if (packet->lb) game->mouse_left_click = true;
+  {
+    static bool lb_prev = false;
+    if (packet->lb && !lb_prev) game->mouse_left_click = true;
+    lb_prev = packet->lb;
+  }
 }
 
 #pragma clang optimize on

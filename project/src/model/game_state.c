@@ -27,6 +27,7 @@ void game_init(Game *game) {
   game->last_score_10    = 0;
   game->last_stars       = 0;
   game->show_back_popup  = false;
+  game->show_exit_popup  = false;
   game->delivery_time_str[0] = '\0';
   game->order_time_str[0]    = '\0';
   rtc_read_datetime(&game->current_time);
