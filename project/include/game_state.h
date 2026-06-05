@@ -91,6 +91,8 @@ typedef struct {
   int last_score_10;
   int last_stars;
 
+  bool show_back_popup;
+
   RtcTime current_time;
   RtcTime order_time;
 } Game;

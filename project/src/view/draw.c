@@ -224,7 +224,27 @@ void game_draw(Game *game) {
           draw_button_label(605, 495, 174, 40, "CONTINUAR", 2, rgb(30, 60, 30));
           break;
       }
+      {
+        int hb = game->mouse_x >= 10 && game->mouse_x < 100 &&
+                 game->mouse_y >= 10 && game->mouse_y < 40;
+        draw_button(10, 10, 90, 30, hb, rgb(160, 40, 40));
+        draw_button_label(10, 10, 90, 30, "MENU", 2, rgb(255, 220, 220));
+      }
       break;
+  }
+
+  if (game->show_back_popup) {
+    int sim_hover = game->mouse_x >= 280 && game->mouse_x < 380 &&
+                    game->mouse_y >= 295 && game->mouse_y < 330;
+    int nao_hover = game->mouse_x >= 420 && game->mouse_x < 520 &&
+                    game->mouse_y >= 295 && game->mouse_y < 330;
+    draw_panel(190, 220, 420, 150, rgb(80, 40, 40));
+    draw_string(316, 248, "TEM A CERTEZA?", 2, rgb(80, 40, 40));
+    draw_string(322, 277, "VOLTAR AO MENU?", 1, rgb(100, 60, 40));
+    draw_button(280, 295, 100, 35, sim_hover, rgb(70, 150, 70));
+    draw_button_label(280, 295, 100, 35, "SIM", 2, rgb(200, 255, 200));
+    draw_button(420, 295, 100, 35, nao_hover, rgb(160, 40, 40));
+    draw_button_label(420, 295, 100, 35, "NAO", 2, rgb(255, 210, 210));
   }
 
   if (drawMouseCursorSprite(game->mouse_x, game->mouse_y) != 0) {
