@@ -15,6 +15,8 @@ extern Sprite *buttonSprite;
 extern Sprite *buttonPressedSprite;
 extern Sprite *mouseCursorSprite;
 extern Sprite *orderTicketSprite;
+extern Sprite *openSignSprite;
+extern Sprite *closedSignSprite;
 
 Sprite *createSprite(xpm_map_t sprite);
 void destroy_sprite(Sprite *sprite);
@@ -23,6 +25,8 @@ int drawSpriteScaled(Sprite *sprite, int x, int y, int width, int height);
 int drawButtonSprite(int x, int y, int width, int height, bool selected, uint32_t color);
 int drawMouseCursorSprite(int x, int y);
 int drawOrderTicketSprite(int x, int y, int width, int height);
+int drawOpenSignSprite(int x, int y, int width, int height);
+int drawClosedSignSprite(int x, int y, int width, int height);
 int loadSprites(void);
 void unloadSprites(void);
 

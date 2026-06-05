@@ -9,30 +9,38 @@
 #include "cook.xpm"
 #include "cut.xpm"
 #include "deliver.xpm"
+#include "open.xpm"
+#include "close.xpm"
 
 #include <string.h>
+
+#pragma clang optimize off
 
 #define SCREEN_W 800
 #define SCREEN_H 600
 
 void game_draw(Game *game) {
-  static uint8_t *menu_pixmap    = NULL; static xpm_image_t menu_img;
-  static uint8_t *take_pixmap    = NULL; static xpm_image_t take_img;
-  static uint8_t *prepare_pixmap = NULL; static xpm_image_t prepare_img;
-  static uint8_t *cook_pixmap    = NULL; static xpm_image_t cook_img;
-  static uint8_t *cut_pixmap     = NULL; static xpm_image_t cut_img;
-  static uint8_t *deliver_pixmap = NULL; static xpm_image_t deliver_img;
+  static uint8_t *menu_pixmap         = NULL; static xpm_image_t menu_img;
+  static uint8_t *take_pixmap         = NULL; static xpm_image_t take_img;
+  static uint8_t *prepare_pixmap      = NULL; static xpm_image_t prepare_img;
+  static uint8_t *cook_pixmap         = NULL; static xpm_image_t cook_img;
+  static uint8_t *cut_pixmap          = NULL; static xpm_image_t cut_img;
+  static uint8_t *deliver_pixmap      = NULL; static xpm_image_t deliver_img;
+  static uint8_t *open_screen_pixmap  = NULL; static xpm_image_t open_screen_img;
+  static uint8_t *close_screen_pixmap = NULL; static xpm_image_t close_screen_img;
   int oven_bar_width;
   int oven_target_ticks;
   int remaining_seconds;
   int name_len;
 
-  if (menu_pixmap    == NULL) menu_pixmap    = xpm_load((xpm_map_t) papas_pizzeria_bg,   XPM_8_8_8, &menu_img);
-  if (take_pixmap    == NULL) take_pixmap    = xpm_load((xpm_map_t) papas_takeorder_xpm, XPM_8_8_8, &take_img);
-  if (prepare_pixmap == NULL) prepare_pixmap = xpm_load((xpm_map_t) pizza_prepare_xpm,   XPM_8_8_8, &prepare_img);
-  if (cook_pixmap    == NULL) cook_pixmap    = xpm_load((xpm_map_t) cook_xpm,            XPM_8_8_8, &cook_img);
-  if (cut_pixmap     == NULL) cut_pixmap     = xpm_load((xpm_map_t) pizza_cut_xpm,       XPM_8_8_8, &cut_img);
-  if (deliver_pixmap == NULL) deliver_pixmap = xpm_load((xpm_map_t) pizza_delivery_xpm,  XPM_8_8_8, &deliver_img);
+  if (menu_pixmap         == NULL) menu_pixmap         = xpm_load((xpm_map_t) papas_pizzeria_bg,                                           XPM_8_8_8, &menu_img);
+  if (take_pixmap         == NULL) take_pixmap         = xpm_load((xpm_map_t) papas_takeorder_xpm,                                         XPM_8_8_8, &take_img);
+  if (prepare_pixmap      == NULL) prepare_pixmap      = xpm_load((xpm_map_t) pizza_prepare_xpm,                                           XPM_8_8_8, &prepare_img);
+  if (cook_pixmap         == NULL) cook_pixmap         = xpm_load((xpm_map_t) cook_xpm,                                                   XPM_8_8_8, &cook_img);
+  if (cut_pixmap          == NULL) cut_pixmap          = xpm_load((xpm_map_t) pizza_cut_xpm,                                               XPM_8_8_8, &cut_img);
+  if (deliver_pixmap      == NULL) deliver_pixmap      = xpm_load((xpm_map_t) pizza_delivery_xpm,                                          XPM_8_8_8, &deliver_img);
+  if (open_screen_pixmap  == NULL) open_screen_pixmap  = xpm_load((xpm_map_t) f2a3fbb0a3df4a57f9195f171b9727cd1drfa9J7j21wCTz5,            XPM_8_8_8, &open_screen_img);
+  if (close_screen_pixmap == NULL) close_screen_pixmap = xpm_load((xpm_map_t) e19de3ab2636463e81a8d8cebcb35f47mId022ybinaBO6ty,            XPM_8_8_8, &close_screen_img);
 
   draw_clear(rgb(215, 220, 205));
 
@@ -95,12 +103,13 @@ void game_draw(Game *game) {
         if      (game->mouse_y >= 195 && game->mouse_y < 245) hover = 0;
         else if (game->mouse_y >= 255 && game->mouse_y < 305) hover = 1;
         else if (game->mouse_y >= 315 && game->mouse_y < 365) hover = 2;
-        else if (game->mouse_y >= 460 && game->mouse_y < 510) hover = 6;
+        else if (game->mouse_y >= 460 && game->mouse_y < 510) hover = 7;
       }
       if (game->mouse_y >= 398 && game->mouse_y < 448) {
-        if      (game->mouse_x >= 510 && game->mouse_x < 584) hover = 3;
-        else if (game->mouse_x >= 588 && game->mouse_x < 662) hover = 4;
-        else if (game->mouse_x >= 666 && game->mouse_x < 740) hover = 5;
+        if      (game->mouse_x >= 510 && game->mouse_x < 566) hover = 3;
+        else if (game->mouse_x >= 568 && game->mouse_x < 624) hover = 4;
+        else if (game->mouse_x >= 626 && game->mouse_x < 682) hover = 5;
+        else if (game->mouse_x >= 684 && game->mouse_x < 740) hover = 6;
       }
 
       draw_button(510, 195, 230, 50, game->settings_option == 0 || hover == 0, rgb(70,  160,  70));
@@ -110,17 +119,19 @@ void game_draw(Game *game) {
       draw_button(510, 315, 230, 50, game->settings_option == 2 || hover == 2, rgb(180,  40,  40));
       draw_button_label(510, 315, 230, 50, "DIFICIL", 3, rgb(255, 220, 220));
 
-      /* "PEDIDOS" label — 7 chars × 12px = 84px → centred: 510 + (230-84)/2 = 583 */
-      draw_string(583, 378, "PEDIDOS", 2, rgb(252, 238, 202));
+      /* "INCREMENTO" — 10 × 12px = 120px → centred: 510 + (230-120)/2 = 565 */
+      draw_string(565, 378, "INCREMENTO", 2, rgb(252, 238, 202));
 
-      draw_button(510, 398, 74, 50, game->settings_option == 3 || hover == 3, rgb(70,  160,  70));
-      draw_button_label(510, 398, 74, 50, "5",  3, rgb(220, 255, 210));
-      draw_button(588, 398, 74, 50, game->settings_option == 4 || hover == 4, rgb(40,   80, 180));
-      draw_button_label(588, 398, 74, 50, "10", 3, rgb(200, 220, 255));
-      draw_button(666, 398, 74, 50, game->settings_option == 5 || hover == 5, rgb(180,  40,  40));
-      draw_button_label(666, 398, 74, 50, "20", 3, rgb(255, 220, 220));
+      draw_button(510, 398, 56, 50, game->day_increment == 0 || hover == 3, rgb(70,  160,  70));
+      draw_button_label(510, 398, 56, 50, "+0", 2, rgb(220, 255, 210));
+      draw_button(568, 398, 56, 50, game->day_increment == 1 || hover == 4, rgb(40,   80, 180));
+      draw_button_label(568, 398, 56, 50, "+1", 2, rgb(200, 220, 255));
+      draw_button(626, 398, 56, 50, game->day_increment == 3 || hover == 5, rgb(180,  40,  40));
+      draw_button_label(626, 398, 56, 50, "+3", 2, rgb(255, 220, 220));
+      draw_button(684, 398, 56, 50, game->day_increment == 5 || hover == 6, rgb(130,  70,  10));
+      draw_button_label(684, 398, 56, 50, "+5", 2, rgb(255, 230, 180));
 
-      draw_button(510, 460, 230, 50, hover == 6, rgb(50,  50,  50));
+      draw_button(510, 460, 230, 50, hover == 7, rgb(50,  50,  50));
       draw_button_label(510, 460, 230, 50, "VOLTAR", 2, rgb(200, 200, 200));
 
       break;
@@ -135,6 +146,17 @@ void game_draw(Game *game) {
           draw_order_ticket(game, 602, 40);
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
           draw_button_label(605, 495, 174, 40, "TIRAR PEDIDO", 2, rgb(30, 60, 30));
+          if (game->day_orders_done >= game->day_orders_total - 1) {
+            if (drawClosedSignSprite(420, 442, 160, 56) != 0) {
+              draw_panel(420, 442, 160, 56, rgb(130, 30, 30));
+              draw_string(458, 463, "FECHADO", 2, rgb(110, 25, 25));
+            }
+          } else {
+            if (drawOpenSignSprite(420, 442, 160, 56) != 0) {
+              draw_panel(420, 442, 160, 56, rgb(30, 120, 50));
+              draw_string(464, 463, "ABERTO", 2, rgb(25, 90, 40));
+            }
+          }
           break;
 
         case PLAYING_PREPARE_PIZZA:
@@ -214,6 +236,17 @@ void game_draw(Game *game) {
 
           draw_button(605, 495, 174, 40, false, rgb(90, 160, 90));
           draw_button_label(605, 495, 174, 40, "ENTREGAR", 2, rgb(30, 60, 30));
+          if (game->day_orders_done >= game->day_orders_total - 1) {
+            if (drawClosedSignSprite(420, 442, 160, 56) != 0) {
+              draw_panel(420, 442, 160, 56, rgb(130, 30, 30));
+              draw_string(458, 463, "FECHADO", 2, rgb(110, 25, 25));
+            }
+          } else {
+            if (drawOpenSignSprite(420, 442, 160, 56) != 0) {
+              draw_panel(420, 442, 160, 56, rgb(30, 120, 50));
+              draw_string(464, 463, "ABERTO", 2, rgb(25, 90, 40));
+            }
+          }
           break;
 
         case PLAYING_DELIVERED:
@@ -231,6 +264,89 @@ void game_draw(Game *game) {
         draw_button_label(10, 10, 90, 30, "MENU", 2, rgb(255, 220, 220));
       }
       break;
+
+    case GAME_STATE_DAY_INTRO: {
+      char day_buf[10];
+      int di = 0, tx, hb;
+      vg_draw_rectangle(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
+      draw_string(283, 50, "BEM VINDO AO DIA", 2, rgb(220, 200, 150));
+      day_buf[di++] = 'D'; day_buf[di++] = 'I'; day_buf[di++] = 'A'; day_buf[di++] = ' ';
+      if (game->day_number >= 10) day_buf[di++] = (char)('0' + (game->day_number / 10) % 10);
+      day_buf[di++] = (char)('0' + game->day_number % 10);
+      day_buf[di] = '\0';
+      tx = (SCREEN_W - di * 24) / 2;
+      draw_string(tx, 110, day_buf, 4, rgb(255, 240, 200));
+      draw_string(310, 335, "PEDIDOS HOJE", 2, rgb(180, 180, 180));
+      {
+        char tot_buf[4]; int ti = 0;
+        if (game->day_orders_total >= 10) tot_buf[ti++] = (char)('0' + game->day_orders_total / 10);
+        tot_buf[ti++] = (char)('0' + game->day_orders_total % 10);
+        tot_buf[ti] = '\0';
+        tx = (SCREEN_W - ti * 24) / 2;
+        draw_string(tx, 370, tot_buf, 4, rgb(255, 240, 200));
+      }
+      hb = game->mouse_x >= 300 && game->mouse_x < 500 &&
+           game->mouse_y >= 510 && game->mouse_y < 560;
+      draw_button(300, 510, 200, 50, hb, rgb(90, 160, 90));
+      draw_button_label(300, 510, 200, 50, "COMECAR", 2, rgb(30, 60, 30));
+      break;
+    }
+
+    case GAME_STATE_OPEN_SCREEN: {
+      if (open_screen_pixmap != NULL)
+        vg_draw_xpm_scaled(open_screen_pixmap, open_screen_img, SCREEN_W, SCREEN_H);
+      else
+        vg_draw_rectangle(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
+      break;
+    }
+
+    case GAME_STATE_CLOSED_SCREEN: {
+      if (close_screen_pixmap != NULL)
+        vg_draw_xpm_scaled(close_screen_pixmap, close_screen_img, SCREEN_W, SCREEN_H);
+      else
+        vg_draw_rectangle(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
+      break;
+    }
+
+    case GAME_STATE_DAY_SUMMARY: {
+      int avg_stars, avg_score, hb;
+      char day_buf[10];
+      int di = 0, tx;
+      uint32_t gold = rgb(255, 200, 0);
+      uint32_t grey = rgb(80, 70, 50);
+
+      vg_draw_rectangle(0, 0, SCREEN_W, SCREEN_H, rgb(0, 0, 0));
+
+      /* "RESUMO DO DIA" scale 3: 13 × 18 = 234px. tx=(800-234)/2=283 */
+      draw_string(283, 50, "RESUMO DO DIA", 3, rgb(220, 200, 150));
+
+      day_buf[di++] = 'D'; day_buf[di++] = 'I'; day_buf[di++] = 'A'; day_buf[di++] = ' ';
+      if (game->day_number >= 10) day_buf[di++] = (char)('0' + (game->day_number / 10) % 10);
+      day_buf[di++] = (char)('0' + game->day_number % 10);
+      day_buf[di] = '\0';
+      tx = (SCREEN_W - di * 18) / 2;
+      draw_string(tx, 110, day_buf, 3, rgb(255, 240, 200));
+
+      avg_stars = game->day_orders_done > 0 ? game->day_total_stars / game->day_orders_done : 0;
+      /* "ESTRELAS MEDIA" scale 2: 14 × 12 = 168px. x=(800-168)/2=316 */
+      draw_string(316, 205, "ESTRELAS MEDIA", 2, rgb(180, 180, 180));
+      draw_diamond(310, 258, 12, avg_stars >= 1 ? gold : grey);
+      draw_diamond(400, 258, 12, avg_stars >= 2 ? gold : grey);
+      draw_diamond(490, 258, 12, avg_stars >= 3 ? gold : grey);
+
+      avg_score = game->day_orders_done > 0 ? game->day_total_score / game->day_orders_done : 0;
+      /* "PONTUACAO MEDIA" scale 2: 15 × 12 = 180px. x=(800-180)/2=310 */
+      draw_string(310, 335, "PONTUACAO MEDIA", 2, rgb(180, 180, 180));
+      draw_char(370, 362, (char)('0' + avg_score / 10), 4, rgb(255, 240, 200));
+      vg_draw_rectangle(392, 386, 4, 4, rgb(255, 240, 200));
+      draw_char(398, 362, (char)('0' + avg_score % 10), 4, rgb(255, 240, 200));
+
+      hb = game->mouse_x >= 300 && game->mouse_x < 500 &&
+           game->mouse_y >= 510 && game->mouse_y < 560;
+      draw_button(300, 510, 200, 50, hb, rgb(90, 160, 90));
+      draw_button_label(300, 510, 200, 50, "NEXT DAY", 2, rgb(30, 60, 30));
+      break;
+    }
   }
 
   if (game->show_back_popup) {
@@ -253,3 +369,5 @@ void game_draw(Game *game) {
   }
   draw_swap();
 }
+
+#pragma clang optimize on

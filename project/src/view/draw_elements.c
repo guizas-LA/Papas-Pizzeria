@@ -3,6 +3,8 @@
 #include "sprites.h"
 #include <string.h>
 
+#pragma clang optimize off
+
 static const char *SAUCE_NAMES[]   = { "MOLHO DE TOMATE", "MOLHO BRANCO" };
 static const char *TOPPING_NAMES[] = { "COGUMELO", "PEPERONI", "FIAMBRE", "ANANÁS", "QUEIJO", "AZEITONAS" };
 const uint32_t TOPPING_COLORS[] = {
@@ -14,7 +16,7 @@ const uint32_t TOPPING_COLORS[] = {
   0x284619,  /* azeitona */
 };
 
-static void draw_diamond(int cx, int cy, int size, uint32_t color) {
+void draw_diamond(int cx, int cy, int size, uint32_t color) {
   int i;
   for (i = -size; i <= size; i++) {
     int half = size - (i < 0 ? -i : i);
@@ -193,3 +195,5 @@ void draw_pizza_cuts(Game *game, int cx, int cy, int r) {
                 (i == game->cut_selected) ? rgb(255, 200, 0) : rgb(20, 20, 20));
   }
 }
+
+#pragma clang optimize on

@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#pragma clang optimize off
+
 #define SCREEN_W 800
 #define SCREEN_H 600
 
@@ -192,6 +194,7 @@ static const uint8_t FONT_DATA[][7] = {
   /* Ç:40 */ {0x0E, 0x11, 0x10, 0x10, 0x11, 0x0E, 0x06},
   /* Ã:41 */ {0x0A, 0x0E, 0x11, 0x1F, 0x11, 0x11, 0x11},
   /* Õ:42 */ {0x0A, 0x0E, 0x11, 0x11, 0x11, 0x11, 0x0E},
+  /* +:43 */ {0x00, 0x04, 0x04, 0x1F, 0x04, 0x04, 0x00},
 };
 
 static int char_to_font_idx(char c) {
@@ -210,6 +213,7 @@ static int char_to_font_idx(char c) {
     case '6': return 31; case '7': return 32; case '8': return 33;
     case '9': return 34;
     case ':': return 37;
+    case '+': return 43;
     default:  return 35;
   }
 }
@@ -276,3 +280,5 @@ void draw_button(int x, int y, int w, int h, bool selected, uint32_t color) {
     draw_rect(x + 4, y + 4, w - 8, h - 8, color);
   }
 }
+
+#pragma clang optimize on

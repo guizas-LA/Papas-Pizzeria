@@ -19,7 +19,11 @@ typedef struct {
 typedef enum {
   GAME_STATE_MENU,
   GAME_STATE_PLAYING,
-  GAME_STATE_SETTINGS
+  GAME_STATE_SETTINGS,
+  GAME_STATE_DAY_INTRO,
+  GAME_STATE_OPEN_SCREEN,
+  GAME_STATE_CLOSED_SCREEN,
+  GAME_STATE_DAY_SUMMARY
 } GameState;
 
 typedef enum {
@@ -27,12 +31,6 @@ typedef enum {
   DIFF_NORMAL,
   DIFF_HARD
 } Difficulty;
-
-typedef enum {
-  ORDERS_5,
-  ORDERS_10,
-  ORDERS_20
-} OrderLimit;
 
 typedef enum {
   PLAYING_TAKE_ORDER,
@@ -86,7 +84,14 @@ typedef struct {
   int menu_option;
   Difficulty difficulty;
   int settings_option;
-  OrderLimit order_limit;
+  int day_increment;
+
+  int day_number;
+  int day_orders_total;
+  int day_orders_done;
+  int day_total_stars;
+  int day_total_score;
+  int state_ticks;
 
   int last_score_10;
   int last_stars;

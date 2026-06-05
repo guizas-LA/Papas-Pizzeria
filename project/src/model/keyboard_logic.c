@@ -1,6 +1,8 @@
 #include "keyboard_logic.h"
 #include "game_logic.h"
 
+#pragma clang optimize off
+
 #define ESC_BREAK      0x81
 #define ENTER_BREAK    0x9C
 #define BACKSPACE_MAKE 0x0E
@@ -18,7 +20,7 @@
 #define ARROW_DOWN_MAKE  0x50
 
 #define NUM_MENU_OPTIONS     3
-#define NUM_SETTINGS_OPTIONS 6
+#define NUM_SETTINGS_OPTIONS 8
 
 
 static char scancode_to_char(uint8_t sc) {
@@ -70,7 +72,16 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
     case GAME_STATE_MENU:
       if (scancode == ENTER_BREAK) {
         switch (game->menu_option) {
-          case 0: game->state = GAME_STATE_PLAYING; game->playing_state = PLAYING_TAKE_ORDER; break;
+          case 0:
+            game->day_number       = 1;
+            game->day_orders_total = 3;
+            game->day_orders_done  = 0;
+            game->day_total_stars  = 0;
+            game->day_total_score  = 0;
+            game->state_ticks      = 0;
+            game->order_number     = 0;
+            game->state            = GAME_STATE_DAY_INTRO;
+            break;
           case 1:
             game->settings_option = (int)game->difficulty;
             game->state = GAME_STATE_SETTINGS;
@@ -82,10 +93,13 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
 
     case GAME_STATE_SETTINGS:
       if (scancode == ENTER_BREAK) {
-        if (game->settings_option <= 2)
-          game->difficulty = (Difficulty)game->settings_option;
-        else
-          game->order_limit = (OrderLimit)(game->settings_option - 3);
+        if (game->settings_option == 0) game->difficulty = DIFF_EASY;
+        else if (game->settings_option == 1) game->difficulty = DIFF_NORMAL;
+        else if (game->settings_option == 2) game->difficulty = DIFF_HARD;
+        else if (game->settings_option == 3) game->day_increment = 0;
+        else if (game->settings_option == 4) game->day_increment = 1;
+        else if (game->settings_option == 5) game->day_increment = 3;
+        else if (game->settings_option == 6) game->day_increment = 5;
         game->state = GAME_STATE_MENU;
       }
       break;
@@ -141,5 +155,10 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
           break;
       }
       break;
+
+    default:
+      break;
   }
 }
+
+#pragma clang optimize on

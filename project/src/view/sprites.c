@@ -6,6 +6,10 @@
 #include "draw_utils.h"
 #include "graphics.h"
 #include "order_ticket.xpm"
+#include "open_sign.xpm"
+#include "closed_sign.xpm"
+
+#pragma clang optimize off
 
 #define TRANSPARENT_RGB 0x00FFFFFE
 #define TEMPLATE_FILL 0x0000ED2F
@@ -19,6 +23,8 @@ Sprite *buttonSprite = NULL;
 Sprite *buttonPressedSprite = NULL;
 Sprite *mouseCursorSprite = NULL;
 Sprite *orderTicketSprite = NULL;
+Sprite *openSignSprite    = NULL;
+Sprite *closedSignSprite  = NULL;
 
 static uint32_t sprite_rgb(uint32_t color) {
   return color & 0x00FFFFFF;
@@ -136,8 +142,15 @@ int drawMouseCursorSprite(int x, int y) {
 }
 
 int drawOrderTicketSprite(int x, int y, int width, int height) {
-  Sprite *ticket = orderTicketSprite;
-  return drawSpriteScaled(ticket, x, y, width, height);
+  return drawSpriteScaled(orderTicketSprite, x, y, width, height);
+}
+
+int drawOpenSignSprite(int x, int y, int width, int height) {
+  return drawSpriteScaled(openSignSprite, x, y, width, height);
+}
+
+int drawClosedSignSprite(int x, int y, int width, int height) {
+  return drawSpriteScaled(closedSignSprite, x, y, width, height);
 }
 
 int loadSprites(void) {
@@ -152,6 +165,9 @@ int loadSprites(void) {
     return 1;
   }
 
+  openSignSprite   = createSprite((xpm_map_t) a81255e6075e4521b28c45608627c6b0MtbZSeLNMhCw9l3n);
+  closedSignSprite = createSprite((xpm_map_t) b9eb1cb3924a4a89cd449e69fb35d556fHKr1debNstGhuGO);
+
   return 0;
 }
 
@@ -160,9 +176,15 @@ void unloadSprites(void) {
   destroy_sprite(buttonPressedSprite);
   destroy_sprite(mouseCursorSprite);
   destroy_sprite(orderTicketSprite);
+  destroy_sprite(openSignSprite);
+  destroy_sprite(closedSignSprite);
 
-  buttonSprite = NULL;
+  buttonSprite        = NULL;
   buttonPressedSprite = NULL;
-  mouseCursorSprite = NULL;
-  orderTicketSprite = NULL;
+  mouseCursorSprite   = NULL;
+  orderTicketSprite   = NULL;
+  openSignSprite      = NULL;
+  closedSignSprite    = NULL;
 }
+
+#pragma clang optimize on
