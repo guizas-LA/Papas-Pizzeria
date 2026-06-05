@@ -52,16 +52,25 @@ void handle_click(Game *game) {
       break;
 
     case GAME_STATE_SETTINGS:
-      if (mouse_inside(game, 510, 260, 230, 60)) {
+      if (mouse_inside(game, 510, 195, 230, 50)) {
         game->difficulty = DIFF_EASY;
         game->state = GAME_STATE_MENU;
-      } else if (mouse_inside(game, 510, 340, 230, 60)) {
+      } else if (mouse_inside(game, 510, 255, 230, 50)) {
         game->difficulty = DIFF_NORMAL;
         game->state = GAME_STATE_MENU;
-      } else if (mouse_inside(game, 510, 420, 230, 60)) {
+      } else if (mouse_inside(game, 510, 315, 230, 50)) {
         game->difficulty = DIFF_HARD;
         game->state = GAME_STATE_MENU;
-      } else if (mouse_inside(game, 510, 510, 230, 60)) {
+      } else if (mouse_inside(game, 510, 398, 74, 50)) {
+        game->order_limit = ORDERS_5;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 588, 398, 74, 50)) {
+        game->order_limit = ORDERS_10;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 666, 398, 74, 50)) {
+        game->order_limit = ORDERS_20;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 510, 460, 230, 50)) {
         game->state = GAME_STATE_MENU;  /* VOLTAR: cancel */
       }
       break;

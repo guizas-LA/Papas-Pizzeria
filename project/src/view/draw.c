@@ -88,24 +88,40 @@ void game_draw(Game *game) {
       vg_draw_xpm(menu_pixmap, menu_img, 0, 0);
 
       /* title — centred in the button column (x 510..740, 10 chars × scale 3 = 180px) */
-      draw_string(535, 208, "DEFINICOES", 3, rgb(252, 238, 202));
+      draw_string(535, 165, "DEFINICOES", 3, rgb(252, 238, 202));
 
       hover = -1;
       if (game->mouse_x >= 510 && game->mouse_x < 740) {
-        if      (game->mouse_y >= 260 && game->mouse_y < 320) hover = 0;
-        else if (game->mouse_y >= 340 && game->mouse_y < 400) hover = 1;
-        else if (game->mouse_y >= 420 && game->mouse_y < 480) hover = 2;
-        else if (game->mouse_y >= 510 && game->mouse_y < 570) hover = 3;
+        if      (game->mouse_y >= 195 && game->mouse_y < 245) hover = 0;
+        else if (game->mouse_y >= 255 && game->mouse_y < 305) hover = 1;
+        else if (game->mouse_y >= 315 && game->mouse_y < 365) hover = 2;
+        else if (game->mouse_y >= 460 && game->mouse_y < 510) hover = 6;
+      }
+      if (game->mouse_y >= 398 && game->mouse_y < 448) {
+        if      (game->mouse_x >= 510 && game->mouse_x < 584) hover = 3;
+        else if (game->mouse_x >= 588 && game->mouse_x < 662) hover = 4;
+        else if (game->mouse_x >= 666 && game->mouse_x < 740) hover = 5;
       }
 
-      draw_button(510, 260, 230, 60, game->settings_option == 0 || hover == 0, rgb(70,  160,  70));
-      draw_button_label(510, 260, 230, 60, "FACIL",   3, rgb(220, 255, 210));
-      draw_button(510, 340, 230, 60, game->settings_option == 1 || hover == 1, rgb(40,   80, 180));
-      draw_button_label(510, 340, 230, 60, "NORMAL",  3, rgb(200, 220, 255));
-      draw_button(510, 420, 230, 60, game->settings_option == 2 || hover == 2, rgb(180,  40,  40));
-      draw_button_label(510, 420, 230, 60, "DIFICIL", 3, rgb(255, 220, 220));
-      draw_button(510, 510, 230, 60, hover == 3, rgb(50,  50,  50));
-      draw_button_label(510, 510, 230, 60, "VOLTAR",  2, rgb(200, 200, 200));
+      draw_button(510, 195, 230, 50, game->settings_option == 0 || hover == 0, rgb(70,  160,  70));
+      draw_button_label(510, 195, 230, 50, "FACIL",   3, rgb(220, 255, 210));
+      draw_button(510, 255, 230, 50, game->settings_option == 1 || hover == 1, rgb(40,   80, 180));
+      draw_button_label(510, 255, 230, 50, "NORMAL",  3, rgb(200, 220, 255));
+      draw_button(510, 315, 230, 50, game->settings_option == 2 || hover == 2, rgb(180,  40,  40));
+      draw_button_label(510, 315, 230, 50, "DIFICIL", 3, rgb(255, 220, 220));
+
+      /* "PEDIDOS" label — 7 chars × 12px = 84px → centred: 510 + (230-84)/2 = 583 */
+      draw_string(583, 378, "PEDIDOS", 2, rgb(252, 238, 202));
+
+      draw_button(510, 398, 74, 50, game->settings_option == 3 || hover == 3, rgb(70,  160,  70));
+      draw_button_label(510, 398, 74, 50, "5",  3, rgb(220, 255, 210));
+      draw_button(588, 398, 74, 50, game->settings_option == 4 || hover == 4, rgb(40,   80, 180));
+      draw_button_label(588, 398, 74, 50, "10", 3, rgb(200, 220, 255));
+      draw_button(666, 398, 74, 50, game->settings_option == 5 || hover == 5, rgb(180,  40,  40));
+      draw_button_label(666, 398, 74, 50, "20", 3, rgb(255, 220, 220));
+
+      draw_button(510, 460, 230, 50, hover == 6, rgb(50,  50,  50));
+      draw_button_label(510, 460, 230, 50, "VOLTAR", 2, rgb(200, 200, 200));
 
       break;
     }
