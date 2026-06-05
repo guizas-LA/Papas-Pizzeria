@@ -92,7 +92,17 @@ void start_oven(Game *game) {
 }
 
 void serve_pizza(Game *game) {
+  int limit;
   game->order_number++;
+  if      (game->order_limit == ORDERS_5)  limit = 5;
+  else if (game->order_limit == ORDERS_20) limit = 20;
+  else                                     limit = 10;
+  if (game->order_number >= limit) {
+    game->order_number = 0;
+    game->state = GAME_STATE_MENU;
+    make_order(game);
+    return;
+  }
   make_order(game);
   game->playing_state = PLAYING_TAKE_ORDER;
 }

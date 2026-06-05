@@ -29,6 +29,12 @@ typedef enum {
 } Difficulty;
 
 typedef enum {
+  ORDERS_5,
+  ORDERS_10,
+  ORDERS_20
+} OrderLimit;
+
+typedef enum {
   PLAYING_TAKE_ORDER,
   PLAYING_PREPARE_PIZZA,
   PLAYING_CUT,
@@ -80,6 +86,7 @@ typedef struct {
   int menu_option;
   Difficulty difficulty;
   int settings_option;
+  OrderLimit order_limit;
 
   int last_score_10;
   int last_stars;

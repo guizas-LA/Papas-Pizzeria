@@ -18,7 +18,7 @@
 #define ARROW_DOWN_MAKE  0x50
 
 #define NUM_MENU_OPTIONS     3
-#define NUM_SETTINGS_OPTIONS 3
+#define NUM_SETTINGS_OPTIONS 6
 
 
 static char scancode_to_char(uint8_t sc) {
@@ -82,7 +82,10 @@ void game_handle_keyboard(Game *game, uint8_t scancode) {
 
     case GAME_STATE_SETTINGS:
       if (scancode == ENTER_BREAK) {
-        game->difficulty = (Difficulty)game->settings_option;
+        if (game->settings_option <= 2)
+          game->difficulty = (Difficulty)game->settings_option;
+        else
+          game->order_limit = (OrderLimit)(game->settings_option - 3);
         game->state = GAME_STATE_MENU;
       }
       break;
