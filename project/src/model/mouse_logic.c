@@ -43,9 +43,26 @@ void handle_click(Game *game) {
         game->playing_state = PLAYING_TAKE_ORDER;
       }
       else if (mouse_inside(game, 510, 445, 230, 70)) {
+        game->settings_option = (int)game->difficulty;
+        game->state = GAME_STATE_SETTINGS;
       }
       else if (mouse_inside(game, 510, 530, 230, 70)) {
         game->running = false;
+      }
+      break;
+
+    case GAME_STATE_SETTINGS:
+      if (mouse_inside(game, 510, 260, 230, 60)) {
+        game->difficulty = DIFF_EASY;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 510, 340, 230, 60)) {
+        game->difficulty = DIFF_NORMAL;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 510, 420, 230, 60)) {
+        game->difficulty = DIFF_HARD;
+        game->state = GAME_STATE_MENU;
+      } else if (mouse_inside(game, 510, 510, 230, 60)) {
+        game->state = GAME_STATE_MENU;  /* VOLTAR: cancel */
       }
       break;
 

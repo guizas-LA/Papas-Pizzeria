@@ -15,6 +15,8 @@ void game_init(Game *game) {
   game->mouse_y          = SCREEN_H / 2;
   game->mouse_left_click = false;
   game->menu_option      = 0;
+  game->difficulty       = DIFF_NORMAL;
+  game->settings_option  = DIFF_NORMAL;
   game->last_score_10    = 0;
   game->last_stars       = 0;
   game->delivery_time_str[0] = '\0';

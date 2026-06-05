@@ -83,6 +83,33 @@ void game_draw(Game *game) {
       break;
     }
 
+    case GAME_STATE_SETTINGS: {
+      int hover;
+      vg_draw_xpm(menu_pixmap, menu_img, 0, 0);
+
+      /* title — centred in the button column (x 510..740, 10 chars × scale 3 = 180px) */
+      draw_string(535, 208, "DEFINICOES", 3, rgb(252, 238, 202));
+
+      hover = -1;
+      if (game->mouse_x >= 510 && game->mouse_x < 740) {
+        if      (game->mouse_y >= 260 && game->mouse_y < 320) hover = 0;
+        else if (game->mouse_y >= 340 && game->mouse_y < 400) hover = 1;
+        else if (game->mouse_y >= 420 && game->mouse_y < 480) hover = 2;
+        else if (game->mouse_y >= 510 && game->mouse_y < 570) hover = 3;
+      }
+
+      draw_button(510, 260, 230, 60, game->settings_option == 0 || hover == 0, rgb(70,  160,  70));
+      draw_button_label(510, 260, 230, 60, "FACIL",   3, rgb(220, 255, 210));
+      draw_button(510, 340, 230, 60, game->settings_option == 1 || hover == 1, rgb(40,   80, 180));
+      draw_button_label(510, 340, 230, 60, "NORMAL",  3, rgb(200, 220, 255));
+      draw_button(510, 420, 230, 60, game->settings_option == 2 || hover == 2, rgb(180,  40,  40));
+      draw_button_label(510, 420, 230, 60, "DIFICIL", 3, rgb(255, 220, 220));
+      draw_button(510, 510, 230, 60, hover == 3, rgb(50,  50,  50));
+      draw_button_label(510, 510, 230, 60, "VOLTAR",  2, rgb(200, 200, 200));
+
+      break;
+    }
+
     case GAME_STATE_PLAYING:
 
       switch (game->playing_state) {
