@@ -89,17 +89,17 @@ make clean
 
 ## Authors
  
-Signed: `Guilherme Silva`, `<student name>`, `<student name>`, `<student name>`  
+Signed: `Afonso Bouça`, `Bruno Dias`, `Diogo Coelho`, `Guilherme Silva`  
 Date: `<date>`
 
 LCOM Project for group GRUPO_2LEIC17_4<p>.
 
 Group members:
 
+Afonso Bouça (up202304970@up.pt)
+Bruno Dias (up202405613@up.pt)
+Diogo Coelho(up202406324@up.pt)
 Guilherme Silva (up202404270@up.pt)
-<first name> <family name> (<email address>)
-<first name> <family name> (<email address>)
-<first name> <family name> (<email address>)
 
 ---
  
