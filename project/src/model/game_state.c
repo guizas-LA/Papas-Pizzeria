@@ -61,6 +61,8 @@ void game_update(Game *game) {
       game->state_ticks = 0;
       game->state = GAME_STATE_PLAYING;
       game->playing_state = PLAYING_TAKE_ORDER;
+      game->show_exit_popup = false;
+      game->show_back_popup = false;
       make_order(game);
     }
     handle_click(game);

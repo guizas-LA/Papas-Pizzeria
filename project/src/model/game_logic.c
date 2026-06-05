@@ -15,14 +15,11 @@ static const char *CUSTOMER_NAMES[] = {
 
 #define NUM_CUSTOMERS ((int)(sizeof(CUSTOMER_NAMES) / sizeof(CUSTOMER_NAMES[0])))
 
-static const int TOPPING_COMBOS[20][3] = {
-  {0,1,2}, {0,1,3}, {0,1,4}, {0,1,5},
-  {0,2,3}, {0,2,4}, {0,2,5},
-  {0,3,4}, {0,3,5}, {0,4,5},
-  {1,2,3}, {1,2,4}, {1,2,5},
-  {1,3,4}, {1,3,5}, {1,4,5},
-  {2,3,4}, {2,3,5}, {2,4,5},
-  {3,4,5}
+static const int NONC_COMBOS[10][2] = {
+  {0,1}, {0,2}, {0,3}, {0,5},
+  {1,2}, {1,3}, {1,5},
+  {2,3}, {2,5},
+  {3,5}
 };
 
 static int mix_n(int n) {
@@ -40,14 +37,17 @@ static int oven_target_ticks(Game *game) {
 void make_order(Game *game) {
   int n     = game->order_number;
   int h     = mix_n(n);
-  int combo = h % 20;
+  int combo = h % 10;
   int difficulty = n / 3;
   int cook_base, cook_range;
 
   game->order.sauce        = h % 2;
-  game->order.toppings[0]  = TOPPING_COMBOS[combo][0];
-  game->order.toppings[1]  = TOPPING_COMBOS[combo][1];
-  game->order.toppings[2]  = TOPPING_COMBOS[combo][2];
+  game->order.toppings[0]  = NONC_COMBOS[combo][0];
+  game->order.toppings[1]  = NONC_COMBOS[combo][1];
+  game->order.toppings[2]  = 4;
+  game->order.topping_qty[0] = 2 + (h / 20)  % 5;
+  game->order.topping_qty[1] = 2 + (h / 100) % 5;
+  game->order.topping_qty[2] = 1;
 
   cook_base  = 5 - (difficulty > 1 ? 1 : 0);
   if (cook_base < 4) cook_base = 4;
@@ -130,7 +130,7 @@ void try_deliver(Game *game) {
   RtcTime t;
   bool placed[6];
   bool required[6];
-  int i, matched, extra, off, num_req, extra_penalty;
+  int i, j, extra, off, num_req, extra_penalty;
   int sauce_s, top_s, oven_s, slice_s, total;
 
   {
@@ -167,17 +167,25 @@ void try_deliver(Game *game) {
   for (i = 0; i < 6; i++) { placed[i] = false; required[i] = false; }
   for (i = 0; i < game->num_placements; i++)
     placed[game->topping_placements[i].type] = true;
-  for (i = 0; i < num_req; i++)
+  /* Mark all 3 ordered toppings as acceptable — matches what the ticket shows.
+     Extra penalty only applies to toppings NOT on the ticket. */
+  for (i = 0; i < 3; i++)
     required[game->order.toppings[i]] = true;
 
-  matched = 0;
-  for (i = 0; i < num_req; i++)
-    if (placed[game->order.toppings[i]]) matched++;
   extra = 0;
   for (i = 0; i < 6; i++)
     if (placed[i] && !required[i]) extra++;
 
-  top_s = matched * 7;
+  top_s = 0;
+  for (i = 0; i < num_req; i++) {
+    int tid = game->order.toppings[i];
+    int qty = game->order.topping_qty[i];
+    int cnt = 0;
+    for (j = 0; j < game->num_placements; j++)
+      if (game->topping_placements[j].type == tid) cnt++;
+    if (cnt > qty) cnt = qty;
+    top_s += cnt * 7 / qty;
+  }
   if (top_s > 20) top_s = 20;
   top_s -= extra * extra_penalty;
   if (top_s < 0) top_s = 0;

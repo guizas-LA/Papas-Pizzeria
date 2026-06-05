@@ -38,6 +38,8 @@ static void cut_point_offset(int N, int i, int r, int *dx, int *dy) {
 void handle_click(Game *game) {
   if (!game->mouse_left_click) return;
 
+  if (game->tick < 120) { game->mouse_left_click = false; return; }
+
   if (game->show_exit_popup) {
     if (mouse_inside(game, 280, 295, 100, 35)) {
       game->running = false;
@@ -150,10 +152,15 @@ void handle_click(Game *game) {
               if (dx*dx + dy*dy <= SAUCE_R*SAUCE_R &&
                   game->active_topping >= 0 &&
                   game->num_placements < MAX_PLACEMENTS) {
-                game->topping_placements[game->num_placements].type = game->active_topping;
-                game->topping_placements[game->num_placements].dx   = dx;
-                game->topping_placements[game->num_placements].dy   = dy;
-                game->num_placements++;
+                int cnt = 0, k;
+                for (k = 0; k < game->num_placements; k++)
+                  if (game->topping_placements[k].type == game->active_topping) cnt++;
+                if (cnt < 10) {
+                  game->topping_placements[game->num_placements].type = game->active_topping;
+                  game->topping_placements[game->num_placements].dx   = dx;
+                  game->topping_placements[game->num_placements].dy   = dy;
+                  game->num_placements++;
+                }
                 break;
               }
             }

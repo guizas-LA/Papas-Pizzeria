@@ -27,6 +27,8 @@ void draw_diamond(int cx, int cy, int size, uint32_t color) {
 static void draw_delivered_ticket(Game *game, int x, int y) {
   int stars = game->last_stars;
   int sc    = game->last_score_10;
+  if (sc < 0) sc = 0;
+  if (sc > 50) sc = 50;
   uint32_t gold = rgb(255, 200, 0);
   uint32_t grey = rgb(90, 78, 58);
 
@@ -55,7 +57,8 @@ static void draw_delivered_ticket(Game *game, int x, int y) {
 
 void draw_order_ticket(Game *game, int x, int y) {
   char buf[12];
-  int i;
+  char qbuf[16];
+  int i, j;
 
   if (drawOrderTicketSprite(x, y, 180, 434) != 0)
     draw_panel(x, y, 180, 434, rgb(115, 76, 43));
@@ -73,8 +76,20 @@ void draw_order_ticket(Game *game, int x, int y) {
   draw_string(x + 18, y + 137, SAUCE_NAMES[game->order.sauce], 1, rgb(30, 22, 16));
 
   draw_string(x + 18, y + 176, "TOPPINGS:", 1, rgb(141, 90, 46));
-  for (i = 0; i < 3; i++)
-    draw_string(x + 18, y + 194 + i * 20, TOPPING_NAMES[game->order.toppings[i]], 1, rgb(30, 22, 16));
+  for (i = 0; i < 3; i++) {
+    if (game->order.topping_qty[i] <= 1) {
+      draw_string(x + 18, y + 194 + i * 20, TOPPING_NAMES[game->order.toppings[i]], 1, rgb(30, 22, 16));
+    } else {
+      int qi = 0;
+      const char *tn = TOPPING_NAMES[game->order.toppings[i]];
+      qbuf[qi++] = (char)('0' + game->order.topping_qty[i]);
+      qbuf[qi++] = 'X';
+      qbuf[qi++] = ' ';
+      for (j = 0; tn[j] && qi < 15; j++) qbuf[qi++] = tn[j];
+      qbuf[qi] = '\0';
+      draw_string(x + 18, y + 194 + i * 20, qbuf, 1, rgb(30, 22, 16));
+    }
+  }
 
   {
     int cs = game->order.cook_seconds;

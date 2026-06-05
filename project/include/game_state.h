@@ -43,6 +43,7 @@ typedef enum {
 typedef struct {
   int sauce;
   int toppings[3];
+  int topping_qty[3];
   int cook_seconds;
   int slices;
   char name[8];
