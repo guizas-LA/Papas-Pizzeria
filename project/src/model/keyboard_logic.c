@@ -3,6 +3,7 @@
 
 #pragma clang optimize off
 
+#define ESC_MAKE       0x01
 #define ESC_BREAK      0x81
 #define ENTER_BREAK    0x9C
 #define BACKSPACE_MAKE 0x0E
@@ -41,16 +42,30 @@ static char scancode_to_char(uint8_t sc) {
 
 void game_handle_keyboard(Game *game, uint8_t scancode) {
   static bool extended = false;
+  static bool esc_in_play = false;
 
-  if (scancode == ESC_BREAK) {
-    if (game->show_exit_popup)
-      game->show_exit_popup = false;
-    else if (game->state == GAME_STATE_SETTINGS)
-      game->state = GAME_STATE_MENU;
-    else
-      game->show_exit_popup = true;
+  if (game->tick < 120) return;
+
+  if (scancode == ESC_MAKE) {
+    esc_in_play = (game->state == GAME_STATE_PLAYING);
     return;
   }
+
+  if (scancode == ESC_BREAK) {
+    if (game->show_exit_popup) {
+      game->show_exit_popup = false;
+    } else if (game->show_back_popup) {
+      game->show_back_popup = false;
+    } else if (game->state == GAME_STATE_SETTINGS) {
+      game->state = GAME_STATE_MENU;
+    } else if (game->state == GAME_STATE_PLAYING && esc_in_play) {
+      game->show_exit_popup = true;
+    }
+    esc_in_play = false;
+    return;
+  }
+
+  if (game->show_exit_popup || game->show_back_popup) return;
 
   if (scancode == EXTENDED_PREFIX) { extended = true; return; }
 

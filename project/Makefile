@@ -26,7 +26,7 @@ all: labs
 
 labs:
 	@if [ -f ../lab1/Makefile ]; then ${MAKE} -C ../lab1; else echo "Skipping lab1: no Makefile"; fi
-	${MAKE} -C ../lab2
+	-${MAKE} -C ../lab2
 	${MAKE} -C ../lab3
 	${MAKE} -C ../lab4
 	${MAKE} -C ../lab5

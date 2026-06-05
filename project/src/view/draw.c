@@ -187,8 +187,47 @@ void game_draw(Game *game) {
             draw_button(375, 540, 80, 50, topping_selected(game, 5), TOPPING_COLORS[5]);
             draw_button_label(375, 540, 80, 50, "AZEITONAS", 1, rgb(200, 230, 180));
 
+            /* Live counters for ordered toppings (skip cheese: qty==0) */
+            {
+              static const int TOP_BX[] = {195, 285, 375, 195, 285, 375};
+              static const int TOP_BY[] = {480, 480, 480, 540, 540, 540};
+              int ti, oi;
+              for (ti = 0; ti < 6; ti++) {
+                int req_qty = 0, req_found = 0;
+                for (oi = 0; oi < 3; oi++) {
+                  if (game->order.toppings[oi] == ti && game->order.topping_qty[oi] > 0) {
+                    req_qty = game->order.topping_qty[oi];
+                    req_found = 1;
+                    break;
+                  }
+                }
+                if (!req_found) continue;
+                {
+                  int cnt = 0, k, ci;
+                  char cbuf[8];
+                  int cw, rx;
+                  uint32_t cc;
+                  for (k = 0; k < game->num_placements; k++)
+                    if (game->topping_placements[k].type == ti) cnt++;
+                  ci = 0;
+                  if (cnt >= 10) cbuf[ci++] = (char)('0' + cnt / 10);
+                  cbuf[ci++] = (char)('0' + cnt % 10);
+                  cbuf[ci++] = ':';
+                  if (req_qty >= 10) cbuf[ci++] = (char)('0' + req_qty / 10);
+                  cbuf[ci++] = (char)('0' + req_qty % 10);
+                  cbuf[ci] = '\0';
+                  cw = ci * 6;
+                  rx = TOP_BX[ti] + (80 - cw) / 2 - 1;
+                  cc = (cnt >= req_qty) ? rgb(80, 200, 80) : rgb(255, 255, 200);
+                  draw_rect(rx, TOP_BY[ti] + 36, cw + 2, 9, rgb(30, 20, 10));
+                  draw_string(rx + 1, TOP_BY[ti] + 37, cbuf, 1, cc);
+                }
+              }
+            }
+
           } else {
             oven_target_ticks = game->order.cook_seconds * GAME_FPS;
+            if (oven_target_ticks <= 0) oven_target_ticks = GAME_FPS;
             oven_bar_width = game->oven_ticks * 420 / oven_target_ticks;
             if (oven_bar_width > 420) oven_bar_width = 420;
             remaining_seconds = (oven_target_ticks - game->oven_ticks + GAME_FPS - 1) / GAME_FPS;
@@ -355,7 +394,7 @@ void game_draw(Game *game) {
     int nao_hover = game->mouse_x >= 420 && game->mouse_x < 520 &&
                     game->mouse_y >= 295 && game->mouse_y < 330;
     draw_panel(140, 210, 520, 170, rgb(50, 40, 80));
-    draw_string(218, 240, "TENS A CERTEZA QUE QUERES SAIR?", 2, rgb(50, 40, 80));
+    draw_string(218, 240, "TENS A CERTEZA QUE QUERES SAIR?", 2, rgb(20, 20, 20));
     draw_button(280, 295, 100, 35, sim_hover, rgb(70, 150, 70));
     draw_button_label(280, 295, 100, 35, "SIM", 2, rgb(200, 255, 200));
     draw_button(420, 295, 100, 35, nao_hover, rgb(160, 40, 40));
@@ -368,8 +407,8 @@ void game_draw(Game *game) {
     int nao_hover = game->mouse_x >= 420 && game->mouse_x < 520 &&
                     game->mouse_y >= 295 && game->mouse_y < 330;
     draw_panel(190, 220, 420, 150, rgb(80, 40, 40));
-    draw_string(316, 248, "TEM A CERTEZA?", 2, rgb(80, 40, 40));
-    draw_string(322, 277, "VOLTAR AO MENU?", 1, rgb(100, 60, 40));
+    draw_string(316, 248, "TEM A CERTEZA?", 2, rgb(255, 220, 220));
+    draw_string(322, 277, "VOLTAR AO MENU?", 1, rgb(255, 200, 180));
     draw_button(280, 295, 100, 35, sim_hover, rgb(70, 150, 70));
     draw_button_label(280, 295, 100, 35, "SIM", 2, rgb(200, 255, 200));
     draw_button(420, 295, 100, 35, nao_hover, rgb(160, 40, 40));
