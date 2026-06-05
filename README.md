@@ -45,16 +45,28 @@ This project integrates all five drivers developed throughout the lab assignment
 ## Screenshots
  
 ### Main Menu
-<!-- img -->
-> *[ Insert here]*
+
+<img src="project/images/1.jpg" width="600" >
  
 ### Options Screen
-<!-- img -->
-> *[ Insert here]*
+
+<img src="project/images/2.jpg" width="600" >
  
 ### Gameplay
-<!-- img -->
-> *[ Insert here]*
+
+<img src="project/images/3.jpg" width="600" >
+<img src="project/images/4.jpg" width="600" >
+<img src="project/images/5.jpg" width="600" >
+<img src="project/images/6.jpg" width="600" >
+<img src="project/images/7.jpg" width="600" >
+<img src="project/images/8.jpg" width="600" >
+<img src="project/images/9.jpg" width="600" >
+<img src="project/images/10.jpg" width="600" >
+<img src="project/images/11.jpg" width="600" >
+<img src="project/images/12.jpg" width="600" >
+<img src="project/images/13.jpg" width="600" >
+<img src="project/images/14.jpg" width="600" >
+<img src="project/images/15.jpg" width="600" >
  
 ---
  
