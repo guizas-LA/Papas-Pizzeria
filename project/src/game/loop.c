@@ -53,6 +53,8 @@ int game_loop(int argc, char *argv[]) {
 
   mouse_write_cmd(0xE8);
   mouse_write_cmd(0x03);
+  mouse_write_cmd(0xF3);
+  mouse_write_cmd(200);
 
   if (mouse_write_cmd(EN_DATA_REPORT) != 0) {
     unsubscribe_all();
@@ -87,19 +89,6 @@ int game_loop(int argc, char *argv[]) {
     if (!is_ipc_notify(ipc_status)) continue;
 
     if (_ENDPOINT_P(msg.m_source) == HARDWARE) {
-      if (msg.m_notify.interrupts & BIT(timer_irq)) {
-        timer_int_handler();
-        game_update(&game);
-        game_draw(&game);
-      }
-
-      if (msg.m_notify.interrupts & BIT(kbd_irq)) {
-        uint8_t scancode;
-        if (read_kbc_byte(&scancode, false) == 0) {
-          game_handle_keyboard(&game, scancode);
-        }
-      }
-
       if (msg.m_notify.interrupts & BIT(mouse_irq)) {
         uint8_t byte;
         while (read_kbc_byte(&byte, true) == 0) {
@@ -114,6 +103,19 @@ int game_loop(int argc, char *argv[]) {
             mouse_byte_count = 0;
           }
         }
+      }
+
+      if (msg.m_notify.interrupts & BIT(kbd_irq)) {
+        uint8_t scancode;
+        if (read_kbc_byte(&scancode, false) == 0) {
+          game_handle_keyboard(&game, scancode);
+        }
+      }
+
+      if (msg.m_notify.interrupts & BIT(timer_irq)) {
+        timer_int_handler();
+        game_update(&game);
+        game_draw(&game);
       }
     }
   }
