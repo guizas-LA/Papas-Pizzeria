@@ -39,43 +39,69 @@ This project integrates all five drivers developed throughout the lab assignment
 | **Lab 4** | **Mouse** (PS/2 via KBC) | Reads mouse packets; controls the in-game cursor for all menu and gameplay interactions |
 | **Lab 5** | **Graphics** (Video Card) | Sets graphics video mode, maps VRAM, and renders all sprites, backgrounds, and UI elements |
  
+
+---
+
+
+## Gameplay
+
+The game recreates the main gameplay loop of *Papa's Pizzeria*:
+
+1. **Take the customer's order**
+2. **Prepare the pizza**
+3. **Add the requested toppings**
+4. **Bake the pizza**
+5. **Serve the customer**
+6. **Receive a score based on the quality of the order**
+
+The project also includes menus, navigation screens, an in-game interface, and interactive elements controlled using the keyboard and mouse.
+
 ---
 
 
 ## Screenshots
- 
+
 ### Main Menu
 
-<img src="project/images/1.jpg" width="600" >
- 
-### Options Screen
+<img width="1917" height="1078" alt="Main Menu" src="https://github.com/user-attachments/assets/3ddf777f-33a3-42ff-90e6-524fe44e23d5" />
 
-<img src="project/images/2.jpg" width="600" >
- 
+### Game Interface
+
+<img width="1917" height="1078" alt="Game Interface" src="https://github.com/user-attachments/assets/2f8a2b93-8004-454f-8742-fe96eca88351" />
+
+### Order Selection
+
+<img width="1917" height="1078" alt="Order Selection" src="https://github.com/user-attachments/assets/bb59ced7-b726-43ec-ab9b-e9d29e951254" />
+
+### Pizza Preparation
+
+<img width="1917" height="1078" alt="Pizza Preparation" src="https://github.com/user-attachments/assets/dc96ae2c-841d-4c70-b6f3-19149a557780" />
+
+### Toppings
+
+<img width="1917" height="1078" alt="Toppings" src="https://github.com/user-attachments/assets/19cc7637-a02e-4fa3-84e3-fe2b30ac53f7" />
+
+### Cooking
+
+<img width="1917" height="1078" alt="Cooking" src="https://github.com/user-attachments/assets/0b217073-b762-4eec-8cf6-8d50b0f36290" />
+
+### Serving
+
+<img width="1917" height="1077" alt="Serving" src="https://github.com/user-attachments/assets/ce85d4d5-5184-49ee-bafd-b1d4aba0ac68" />
+
+### Score
+
+<img width="1917" height="1077" alt="Score" src="https://github.com/user-attachments/assets/9f4d4742-aa8d-45d8-9c08-5038abc89d4c" />
+
 ### Gameplay
 
-<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005342" src="https://github.com/user-attachments/assets/3ddf777f-33a3-42ff-90e6-524fe44e23d5" />
-<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005625" src="https://github.com/user-attachments/assets/2f8a2b93-8004-454f-8742-fe96eca88351" />
-<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005641" src="https://github.com/user-attachments/assets/bb59ced7-b726-43ec-ab9b-e9d29e951254" />
-<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005710" src="https://github.com/user-attachments/assets/dc96ae2c-841d-4c70-b6f3-19149a557780" />
-<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005739" src="https://github.com/user-attachments/assets/19cc7637-a02e-4fa3-84e3-fe2b30ac53f7" />
-<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005759" src="https://github.com/user-attachments/assets/0b217073-b762-4eec-8cf6-8d50b0f36290" />
-<img width="1917" height="1077" alt="Captura de ecrã 2026-10-06 005911" src="https://github.com/user-attachments/assets/ce85d4d5-5184-49ee-bafd-b1d4aba0ac68" />
-<img width="1917" height="1077" alt="Captura de ecrã 2026-10-06 005952" src="https://github.com/user-attachments/assets/9f4d4742-aa8d-45d8-9c08-5038abc89d4c" />
-<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 010006" src="https://github.com/user-attachments/assets/4cb06faa-b998-4cf4-bad4-5f683e848603" />
-<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 010120" src="https://github.com/user-attachments/assets/64c68775-4236-443b-b616-e90e3ed360e1" />
+<img width="1917" height="1078" alt="Gameplay" src="https://github.com/user-attachments/assets/4cb06faa-b998-4cf4-bad4-5f683e848603" />
 
+### Final Screen
 
+<img width="1917" height="1078" alt="Final Screen" src="https://github.com/user-attachments/assets/64c68775-4236-443b-b616-e90e3ed360e1" />
 
-
-
-
-
-
-
- 
 ---
- 
 
 ## Build & Run
  
@@ -103,21 +129,21 @@ make clean
  
 ---
  
-
-
 ## Authors
- 
-Signed: `Afonso Bouça`, `Bruno Dias`, `Diogo Coelho`, `Guilherme Silva`  
-Date: `<date>`
 
-LCOM Project for group GRUPO_2LEIC17_4<p>.
+This project was developed by **GRUPO_2LEIC17_4** as part of the **Computer Laboratory (LCOM)** course at **Faculdade de Engenharia da Universidade do Porto (FEUP)** during the **2025/2026 academic year**.
 
-Group members:
+| Name | Student Number | Email |
+|---|---|---|
+| **Afonso Bouça** | `up202304970` | `up202304970@up.pt` |
+| **Bruno Dias** | `up202405613` | `up202405613@up.pt` |
+| **Diogo Coelho** | `up202406324` | `up202406324@up.pt` |
+| **Guilherme Silva** | `up202404270` | `up202404270@up.pt` |
 
-Afonso Bouça (up202304970@up.pt)
-Bruno Dias (up202405613@up.pt)
-Diogo Coelho(up202406324@up.pt)
-Guilherme Silva (up202404270@up.pt)
+**Course:** Computer Laboratory (LCOM)  
+**Institution:** Faculdade de Engenharia da Universidade do Porto (FEUP)  
+**Academic Year:** 2025/2026  
+**Group:** GRUPO_2LEIC17_4
 
 ---
  
