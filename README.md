@@ -54,19 +54,25 @@ This project integrates all five drivers developed throughout the lab assignment
  
 ### Gameplay
 
-<img src="project/images/3.jpg" width="600" >
-<img src="project/images/4.jpg" width="600" >
-<img src="project/images/5.jpg" width="600" >
-<img src="project/images/6.jpg" width="600" >
-<img src="project/images/7.jpg" width="600" >
-<img src="project/images/8.jpg" width="600" >
-<img src="project/images/9.jpg" width="600" >
-<img src="project/images/10.jpg" width="600" >
-<img src="project/images/11.jpg" width="600" >
-<img src="project/images/12.jpg" width="600" >
-<img src="project/images/13.jpg" width="600" >
-<img src="project/images/14.jpg" width="600" >
-<img src="project/images/15.jpg" width="600" >
+<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005342" src="https://github.com/user-attachments/assets/3ddf777f-33a3-42ff-90e6-524fe44e23d5" />
+<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005625" src="https://github.com/user-attachments/assets/2f8a2b93-8004-454f-8742-fe96eca88351" />
+<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005641" src="https://github.com/user-attachments/assets/bb59ced7-b726-43ec-ab9b-e9d29e951254" />
+<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005710" src="https://github.com/user-attachments/assets/dc96ae2c-841d-4c70-b6f3-19149a557780" />
+<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005739" src="https://github.com/user-attachments/assets/19cc7637-a02e-4fa3-84e3-fe2b30ac53f7" />
+<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 005759" src="https://github.com/user-attachments/assets/0b217073-b762-4eec-8cf6-8d50b0f36290" />
+<img width="1917" height="1077" alt="Captura de ecrã 2026-10-06 005911" src="https://github.com/user-attachments/assets/ce85d4d5-5184-49ee-bafd-b1d4aba0ac68" />
+<img width="1917" height="1077" alt="Captura de ecrã 2026-10-06 005952" src="https://github.com/user-attachments/assets/9f4d4742-aa8d-45d8-9c08-5038abc89d4c" />
+<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 010006" src="https://github.com/user-attachments/assets/4cb06faa-b998-4cf4-bad4-5f683e848603" />
+<img width="1917" height="1078" alt="Captura de ecrã 2026-10-06 010120" src="https://github.com/user-attachments/assets/64c68775-4236-443b-b616-e90e3ed360e1" />
+
+
+
+
+
+
+
+
+
  
 ---
  
